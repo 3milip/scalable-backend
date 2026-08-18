@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judge — zadanie</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Judge</h1>
+      <nav>
+        <a href="index.html">Start</a>
+        <a href="problems.html">Zadania</a>
+        <a href="submissions.html">Zgłoszenia</a>
+        <a href="stats.html">Obciążenie</a>
+      </nav>
+    </header>
+
+    <main>
+      <p><a href="problems.html">← wróć do listy</a></p>
+      <p id="status">Łączenie z backendem…</p>
+      <h2 id="title"></h2>
+      <p id="meta"></p>
+      <p id="statement"></p>
+
+      <p>
+        <button type="button" id="show-solution">Pokaż rozwiązanie</button>
+      </p>
+      <pre id="solution" hidden></pre>
+
+      <h3>Wyślij kod</h3>
+      <form id="submit-form">
+        <p>
+          <label>
+            Język
+            <select id="language">
+              <option value="python">python</option>
+            </select>
+          </label>
+        </p>
+        <p>
+          <textarea id="code" rows="10" cols="60" required>
+print(1)</textarea>
+        </p>
+        <p>
+          <button type="submit">Wyślij</button>
+        </p>
+      </form>
+      <p id="submit-status"></p>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+
+      if (!id) {
+        document.getElementById("status").textContent =
+          "Brak id w adresie. Wejdź z listy albo dopisz ?id=1";
+      } else {
+        loadProblem(id);
+      }
+
+      async function loadProblem(id) {
+        try {
+          const response = await fetch("http://127.0.0.1:8000/problems/" + id);
+          if (response.status === 404) {
+            document.getElementById("status").textContent = "Nie ma takiego zadania";
+            return;
+          }
+          const problem = await response.json();
+
+          document.getElementById("title").textContent = problem.title;
+          document.getElementById("meta").textContent =
+            "trudność " +
+            (problem.difficulty ?? "–") +
+            " · " +
+            problem.time_limit_ms +
+            " ms · " +
+            problem.memory_limit_mb +
+            " MB · " +
+            problem.tags.join(", ");
+          document.getElementById("statement").textContent = problem.statement;
+          document.getElementById("solution").textContent = problem.solution;
+          document.getElementById("status").textContent = "";
+          document.title = "Judge — " + problem.title;
+
+          document.getElementById("show-solution").onclick = function () {
+            const box = document.getElementById("solution");
+            box.hidden = !box.hidden;
+            this.textContent = box.hidden ? "Pokaż rozwiązanie" : "Ukryj rozwiązanie";
+          };
+
+          document.getElementById("submit-form").onsubmit = async function (event) {
+            event.preventDefault();
+            const box = document.getElementById("submit-status");
+            box.textContent = "Wysyłam…";
+            try {
+              const response = await fetch("http://127.0.0.1:8000/submissions", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  problem_id: Number(id),
+                  language: document.getElementById("language").value,
+                  code: document.getElementById("code").value,
+                }),
+              });
+              const created = await response.json();
+              if (!response.ok) {
+                box.textContent = "Błąd: " + (created.detail || response.status);
+                return;
+              }
+              box.innerHTML =
+                "Zgłoszenie #" +
+                created.id +
+                " (" +
+                created.status +
+                "). <a href=\"submission.html?id=" +
+                created.id +
+                "\">zobacz wynik</a>";
+            } catch (error) {
+              box.textContent = "Nie mogę połączyć z backendem.";
+            }
+          };
+        } catch (error) {
+          document.getElementById("status").textContent =
+            "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
+        }
+      }
+    </script>
+  </body>
+</html>

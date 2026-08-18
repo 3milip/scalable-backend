@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judge — strona główna</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Judge</h1>
+      <nav>
+        <a href="index.html">Start</a>
+        <a href="problems.html">Zadania</a>
+        <a href="submissions.html">Zgłoszenia</a>
+        <a href="stats.html">Obciążenie</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Cześć — to sprawdzarka kodu</h2>
+      <p>
+        Wybierasz zadanie, wklejasz program i wysyłasz.
+        System wrzuca go do kolejki, a potem (gdy będzie worker)
+        porówna wynik z testami i powie, czy jest dobrze.
+      </p>
+
+      <div class="cards">
+        <a class="card" href="problems.html">
+          <span class="label">zadania</span>
+          <span class="value">lista</span>
+        </a>
+        <a class="card" href="submissions.html">
+          <span class="label">zgłoszenia</span>
+          <span class="value">wyniki</span>
+        </a>
+        <a class="card" href="stats.html">
+          <span class="label">obciążenie</span>
+          <span class="value">kolejka</span>
+        </a>
+      </div>
+
+      <h3>Jak tego użyć</h3>
+      <ol>
+        <li>Odpal backend: <code>uvicorn app.main:app --reload</code></li>
+        <li>Wejdź w <a href="problems.html">Zadania</a></li>
+        <li>Kliknij tytuł, wklej kod, wyślij</li>
+        <li>Zobacz zgłoszenie — na razie zostanie <code>queued</code></li>
+      </ol>
+    </main>
+  </body>
+</html>

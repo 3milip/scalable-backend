@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judge — zgłoszenie</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Judge</h1>
+      <nav>
+        <a href="index.html">Start</a>
+        <a href="problems.html">Zadania</a>
+        <a href="submissions.html">Zgłoszenia</a>
+        <a href="stats.html">Obciążenie</a>
+      </nav>
+    </header>
+
+    <main>
+      <p><a href="submissions.html">← zgłoszenia</a></p>
+      <p id="status">Łączenie z backendem…</p>
+      <h2 id="title"></h2>
+      <div class="cards">
+        <div class="card">
+          <span class="label">status</span>
+          <span class="value" id="sub-status">–</span>
+        </div>
+        <div class="card">
+          <span class="label">werdykt</span>
+          <span class="value" id="verdict">–</span>
+        </div>
+        <div class="card">
+          <span class="label">czas (ms)</span>
+          <span class="value" id="time">–</span>
+        </div>
+        <div class="card">
+          <span class="label">RAM (kB)</span>
+          <span class="value" id="memory">–</span>
+        </div>
+      </div>
+      <p id="message"></p>
+      <h3>Wysłany kod</h3>
+      <pre id="code"></pre>
+    </main>
+
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get("id");
+
+      if (!id) {
+        document.getElementById("status").textContent =
+          "Brak id w adresie. Wejdź z formularza albo dopisz ?id=1";
+      } else {
+        loadSubmission();
+        setInterval(loadSubmission, 2000);
+      }
+
+      async function loadSubmission() {
+        try {
+          const response = await fetch("http://127.0.0.1:8000/submissions/" + id);
+          if (response.status === 404) {
+            document.getElementById("status").textContent = "Nie ma takiego zgłoszenia";
+            return;
+          }
+          const sub = await response.json();
+
+          document.getElementById("title").textContent = "Zgłoszenie #" + sub.id;
+          document.getElementById("sub-status").textContent = sub.status;
+          document.getElementById("verdict").textContent = sub.verdict ?? "–";
+          document.getElementById("time").textContent = sub.time_ms ?? "–";
+          document.getElementById("memory").textContent = sub.memory_kb ?? "–";
+          document.getElementById("message").textContent = sub.message ?? "";
+          document.getElementById("code").textContent = sub.code ?? "";
+          document.getElementById("status").textContent =
+            "Zadanie #" + sub.problem_id + " · " + sub.language;
+        } catch (error) {
+          document.getElementById("status").textContent =
+            "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
+        }
+      }
+    </script>
+  </body>
+</html>

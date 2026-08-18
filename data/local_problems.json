@@ -1,0 +1,677 @@
+[
+  {
+    "external_id": "local-01",
+    "title": "Suma dwóch liczb",
+    "statement": "Wczytaj dwie liczby całkowite a i b (w jednej linii, oddzielone spacją).\nWypisz ich sumę.\n\nPrzykład:\nWejście:\n1 2\nWyjście:\n3",
+    "difficulty": 800,
+    "tags": [
+      "math",
+      "implementation"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "1 2\n",
+        "output": "3\n",
+        "hidden": false
+      },
+      {
+        "input": "0 0\n",
+        "output": "0\n",
+        "hidden": true
+      },
+      {
+        "input": "-5 10\n",
+        "output": "5\n",
+        "hidden": true
+      },
+      {
+        "input": "100 200\n",
+        "output": "300\n",
+        "hidden": true
+      }
+    ],
+    "solution": "a, b = map(int, input().split())\nprint(a + b)"
+  },
+  {
+    "external_id": "local-02",
+    "title": "Parzystość",
+    "statement": "Wczytaj jedną liczbę całkowitą n.\nWypisz TAK, jeśli n jest parzyste, w przeciwnym razie NIE.\n\nPrzykład:\nWejście:\n4\nWyjście:\nTAK",
+    "difficulty": 800,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "4\n",
+        "output": "TAK\n",
+        "hidden": false
+      },
+      {
+        "input": "7\n",
+        "output": "NIE\n",
+        "hidden": false
+      },
+      {
+        "input": "0\n",
+        "output": "TAK\n",
+        "hidden": true
+      },
+      {
+        "input": "-2\n",
+        "output": "TAK\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\nprint(\"TAK\" if n % 2 == 0 else \"NIE\")"
+  },
+  {
+    "external_id": "local-03",
+    "title": "Maksimum z trzech",
+    "statement": "Wczytaj trzy liczby całkowite a, b, c (jedna linia, spacje).\nWypisz największą z nich.\n\nPrzykład:\nWejście:\n3 9 4\nWyjście:\n9",
+    "difficulty": 800,
+    "tags": [
+      "math",
+      "implementation"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "3 9 4\n",
+        "output": "9\n",
+        "hidden": false
+      },
+      {
+        "input": "5 5 5\n",
+        "output": "5\n",
+        "hidden": true
+      },
+      {
+        "input": "-1 -8 -3\n",
+        "output": "-1\n",
+        "hidden": true
+      },
+      {
+        "input": "0 2 1\n",
+        "output": "2\n",
+        "hidden": true
+      }
+    ],
+    "solution": "print(max(map(int, input().split())))"
+  },
+  {
+    "external_id": "local-04",
+    "title": "Arbuz",
+    "statement": "Arbuz waży w kilogramów. Czy da się podzielić go na dwie części o dodatniej, parzystej wadze?\nWczytaj jedną liczbę całkowitą w (1 ≤ w ≤ 100).\nWypisz TAK albo NIE.\n\nPrzykład:\nWejście:\n8\nWyjście:\nTAK",
+    "difficulty": 800,
+    "tags": [
+      "math",
+      "brute force"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "8\n",
+        "output": "TAK\n",
+        "hidden": false
+      },
+      {
+        "input": "2\n",
+        "output": "NIE\n",
+        "hidden": false
+      },
+      {
+        "input": "1\n",
+        "output": "NIE\n",
+        "hidden": true
+      },
+      {
+        "input": "3\n",
+        "output": "NIE\n",
+        "hidden": true
+      },
+      {
+        "input": "100\n",
+        "output": "TAK\n",
+        "hidden": true
+      }
+    ],
+    "solution": "w = int(input())\nprint(\"TAK\" if w >= 4 and w % 2 == 0 else \"NIE\")"
+  },
+  {
+    "external_id": "local-05",
+    "title": "Wartość bezwzględna",
+    "statement": "Wczytaj jedną liczbę całkowitą n.\nWypisz |n|.\n\nPrzykład:\nWejście:\n-7\nWyjście:\n7",
+    "difficulty": 800,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "-7\n",
+        "output": "7\n",
+        "hidden": false
+      },
+      {
+        "input": "0\n",
+        "output": "0\n",
+        "hidden": true
+      },
+      {
+        "input": "15\n",
+        "output": "15\n",
+        "hidden": true
+      }
+    ],
+    "solution": "print(abs(int(input())))"
+  },
+  {
+    "external_id": "local-06",
+    "title": "Reszta z dzielenia",
+    "statement": "Wczytaj dwie liczby całkowite a i b (b ≠ 0).\nWypisz resztę z dzielenia a przez b (a % b).\n\nPrzykład:\nWejście:\n10 3\nWyjście:\n1",
+    "difficulty": 800,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "10 3\n",
+        "output": "1\n",
+        "hidden": false
+      },
+      {
+        "input": "20 5\n",
+        "output": "0\n",
+        "hidden": true
+      },
+      {
+        "input": "7 10\n",
+        "output": "7\n",
+        "hidden": true
+      }
+    ],
+    "solution": "a, b = map(int, input().split())\nprint(a % b)"
+  },
+  {
+    "external_id": "local-07",
+    "title": "Suma od 1 do n",
+    "statement": "Wczytaj liczbę całkowitą n (1 ≤ n ≤ 10000).\nWypisz sumę 1+2+...+n.\n\nPrzykład:\nWejście:\n5\nWyjście:\n15",
+    "difficulty": 800,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "5\n",
+        "output": "15\n",
+        "hidden": false
+      },
+      {
+        "input": "1\n",
+        "output": "1\n",
+        "hidden": true
+      },
+      {
+        "input": "100\n",
+        "output": "5050\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\nprint(n * (n + 1) // 2)"
+  },
+  {
+    "external_id": "local-08",
+    "title": "Silnia",
+    "statement": "Wczytaj liczbę całkowitą n (0 ≤ n ≤ 10).\nWypisz n! (silnię).\nPrzypomnienie: 0! = 1.\n\nPrzykład:\nWejście:\n5\nWyjście:\n120",
+    "difficulty": 900,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "5\n",
+        "output": "120\n",
+        "hidden": false
+      },
+      {
+        "input": "0\n",
+        "output": "1\n",
+        "hidden": false
+      },
+      {
+        "input": "1\n",
+        "output": "1\n",
+        "hidden": true
+      },
+      {
+        "input": "10\n",
+        "output": "3628800\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\nwynik = 1\nfor i in range(1, n + 1):\n    wynik *= i\nprint(wynik)"
+  },
+  {
+    "external_id": "local-09",
+    "title": "Odwrócony napis",
+    "statement": "Wczytaj jeden napis (jedna linia, bez spacji).\nWypisz ten napis od tyłu.\n\nPrzykład:\nWejście:\nkot\nWyjście:\ntok",
+    "difficulty": 800,
+    "tags": [
+      "strings"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "kot\n",
+        "output": "tok\n",
+        "hidden": false
+      },
+      {
+        "input": "a\n",
+        "output": "a\n",
+        "hidden": true
+      },
+      {
+        "input": "abcde\n",
+        "output": "edcba\n",
+        "hidden": true
+      }
+    ],
+    "solution": "print(input().strip()[::-1])"
+  },
+  {
+    "external_id": "local-10",
+    "title": "Palindrom",
+    "statement": "Wczytaj jeden napis (jedna linia, małe litery, bez spacji).\nWypisz TAK, jeśli napis czytany od przodu i od tyłu jest taki sam, w przeciwnym razie NIE.\n\nPrzykład:\nWejście:\nkajak\nWyjście:\nTAK",
+    "difficulty": 900,
+    "tags": [
+      "strings"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "kajak\n",
+        "output": "TAK\n",
+        "hidden": false
+      },
+      {
+        "input": "kot\n",
+        "output": "NIE\n",
+        "hidden": false
+      },
+      {
+        "input": "a\n",
+        "output": "TAK\n",
+        "hidden": true
+      },
+      {
+        "input": "abba\n",
+        "output": "TAK\n",
+        "hidden": true
+      }
+    ],
+    "solution": "s = input().strip()\nprint(\"TAK\" if s == s[::-1] else \"NIE\")"
+  },
+  {
+    "external_id": "local-11",
+    "title": "Długość napisu",
+    "statement": "Wczytaj jeden napis (jedna linia, bez spacji).\nWypisz liczbę znaków.\n\nPrzykład:\nWejście:\nala\nWyjście:\n3",
+    "difficulty": 800,
+    "tags": [
+      "strings"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "ala\n",
+        "output": "3\n",
+        "hidden": false
+      },
+      {
+        "input": "x\n",
+        "output": "1\n",
+        "hidden": true
+      },
+      {
+        "input": "programowanie\n",
+        "output": "13\n",
+        "hidden": true
+      }
+    ],
+    "solution": "print(len(input().strip()))"
+  },
+  {
+    "external_id": "local-12",
+    "title": "Minimum z listy",
+    "statement": "W pierwszej linii liczba całkowita n (1 ≤ n ≤ 100).\nW drugiej linii n liczb całkowitych oddzielonych spacjami.\nWypisz najmniejszą z nich.\n\nPrzykład:\nWejście:\n4\n3 8 1 5\nWyjście:\n1",
+    "difficulty": 800,
+    "tags": [
+      "implementation"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "4\n3 8 1 5\n",
+        "output": "1\n",
+        "hidden": false
+      },
+      {
+        "input": "1\n42\n",
+        "output": "42\n",
+        "hidden": true
+      },
+      {
+        "input": "5\n-2 0 -9 4 -1\n",
+        "output": "-9\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\nprint(min(map(int, input().split())))"
+  },
+  {
+    "external_id": "local-13",
+    "title": "Ile dodatnich",
+    "statement": "W pierwszej linii liczba całkowita n (1 ≤ n ≤ 100).\nW drugiej linii n liczb całkowitych.\nWypisz, ile z nich jest większych od zera.\n\nPrzykład:\nWejście:\n5\n-1 0 3 4 -2\nWyjście:\n2",
+    "difficulty": 800,
+    "tags": [
+      "implementation"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "5\n-1 0 3 4 -2\n",
+        "output": "2\n",
+        "hidden": false
+      },
+      {
+        "input": "3\n-1 -2 -3\n",
+        "output": "0\n",
+        "hidden": true
+      },
+      {
+        "input": "3\n1 2 3\n",
+        "output": "3\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\nprint(sum(1 for x in map(int, input().split()) if x > 0))"
+  },
+  {
+    "external_id": "local-14",
+    "title": "Potęga",
+    "statement": "Wczytaj dwie liczby całkowite a i b (0 ≤ a ≤ 20, 0 ≤ b ≤ 8).\nWypisz a do potęgi b.\nPrzypomnienie: a^0 = 1 (także dla a = 0 przyjmujemy 1).\n\nPrzykład:\nWejście:\n2 5\nWyjście:\n32",
+    "difficulty": 900,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "2 5\n",
+        "output": "32\n",
+        "hidden": false
+      },
+      {
+        "input": "5 0\n",
+        "output": "1\n",
+        "hidden": true
+      },
+      {
+        "input": "0 0\n",
+        "output": "1\n",
+        "hidden": true
+      },
+      {
+        "input": "3 4\n",
+        "output": "81\n",
+        "hidden": true
+      }
+    ],
+    "solution": "a, b = map(int, input().split())\nprint(a ** b)"
+  },
+  {
+    "external_id": "local-15",
+    "title": "Czy trójkąt",
+    "statement": "Wczytaj trzy dodatnie liczby całkowite a, b, c — długości boków.\nWypisz TAK, jeśli da się z nich zbudować trójkąt (nierówność trójkąta: suma każdych dwóch boków większa od trzeciego), w przeciwnym razie NIE.\n\nPrzykład:\nWejście:\n3 4 5\nWyjście:\nTAK",
+    "difficulty": 900,
+    "tags": [
+      "math",
+      "geometry"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "3 4 5\n",
+        "output": "TAK\n",
+        "hidden": false
+      },
+      {
+        "input": "1 2 3\n",
+        "output": "NIE\n",
+        "hidden": false
+      },
+      {
+        "input": "5 5 5\n",
+        "output": "TAK\n",
+        "hidden": true
+      },
+      {
+        "input": "2 3 10\n",
+        "output": "NIE\n",
+        "hidden": true
+      }
+    ],
+    "solution": "a, b, c = map(int, input().split())\nprint(\"TAK\" if a + b > c and a + c > b and b + c > a else \"NIE\")"
+  },
+  {
+    "external_id": "local-16",
+    "title": "NWD",
+    "statement": "Wczytaj dwie dodatnie liczby całkowite a i b (1 ≤ a, b ≤ 10000).\nWypisz ich największy wspólny dzielnik.\n\nPrzykład:\nWejście:\n12 18\nWyjście:\n6",
+    "difficulty": 1000,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "12 18\n",
+        "output": "6\n",
+        "hidden": false
+      },
+      {
+        "input": "7 13\n",
+        "output": "1\n",
+        "hidden": true
+      },
+      {
+        "input": "100 10\n",
+        "output": "10\n",
+        "hidden": true
+      },
+      {
+        "input": "21 14\n",
+        "output": "7\n",
+        "hidden": true
+      }
+    ],
+    "solution": "import math\na, b = map(int, input().split())\nprint(math.gcd(a, b))"
+  },
+  {
+    "external_id": "local-17",
+    "title": "Rok przestępny",
+    "statement": "Wczytaj rok y (1 ≤ y ≤ 3000).\nWypisz TAK, jeśli rok jest przestępny, w przeciwnym razie NIE.\nRok jest przestępny, gdy dzieli się przez 400, albo dzieli się przez 4 i nie dzieli się przez 100.\n\nPrzykład:\nWejście:\n2024\nWyjście:\nTAK",
+    "difficulty": 900,
+    "tags": [
+      "math"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "2024\n",
+        "output": "TAK\n",
+        "hidden": false
+      },
+      {
+        "input": "1900\n",
+        "output": "NIE\n",
+        "hidden": false
+      },
+      {
+        "input": "2000\n",
+        "output": "TAK\n",
+        "hidden": true
+      },
+      {
+        "input": "2023\n",
+        "output": "NIE\n",
+        "hidden": true
+      }
+    ],
+    "solution": "y = int(input())\nprint(\"TAK\" if y % 400 == 0 or (y % 4 == 0 and y % 100 != 0) else \"NIE\")"
+  },
+  {
+    "external_id": "local-18",
+    "title": "Ciąg niemalejący",
+    "statement": "W pierwszej linii liczba całkowita n (1 ≤ n ≤ 100).\nW drugiej linii n liczb całkowitych.\nWypisz TAK, jeśli ciąg jest niemalejący (każda kolejna liczba ≥ poprzedniej), w przeciwnym razie NIE.\n\nPrzykład:\nWejście:\n4\n1 2 2 5\nWyjście:\nTAK",
+    "difficulty": 900,
+    "tags": [
+      "implementation"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "4\n1 2 2 5\n",
+        "output": "TAK\n",
+        "hidden": false
+      },
+      {
+        "input": "3\n3 2 1\n",
+        "output": "NIE\n",
+        "hidden": false
+      },
+      {
+        "input": "1\n7\n",
+        "output": "TAK\n",
+        "hidden": true
+      },
+      {
+        "input": "3\n1 3 2\n",
+        "output": "NIE\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\na = list(map(int, input().split()))\nprint(\"TAK\" if all(a[i] <= a[i + 1] for i in range(n - 1)) else \"NIE\")"
+  },
+  {
+    "external_id": "local-19",
+    "title": "Średnia całkowita",
+    "statement": "W pierwszej linii liczba całkowita n (1 ≤ n ≤ 100).\nW drugiej linii n liczb całkowitych.\nWypisz średnią arytmetyczną zaokrągloną w dół (część całkowita z dzielenia sumy przez n).\n\nPrzykład:\nWejście:\n3\n1 2 3\nWyjście:\n2",
+    "difficulty": 900,
+    "tags": [
+      "math",
+      "implementation"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "3\n1 2 3\n",
+        "output": "2\n",
+        "hidden": false
+      },
+      {
+        "input": "2\n1 2\n",
+        "output": "1\n",
+        "hidden": true
+      },
+      {
+        "input": "4\n10 10 10 10\n",
+        "output": "10\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\nprint(sum(map(int, input().split())) // n)"
+  },
+  {
+    "external_id": "local-20",
+    "title": "FizzBuzz",
+    "statement": "Wczytaj jedną liczbę całkowitą n (1 ≤ n ≤ 100).\nJeśli n dzieli się przez 3 i przez 5, wypisz FizzBuzz.\nJeśli tylko przez 3, wypisz Fizz.\nJeśli tylko przez 5, wypisz Buzz.\nW przeciwnym razie wypisz samą liczbę n.\n\nPrzykład:\nWejście:\n15\nWyjście:\nFizzBuzz",
+    "difficulty": 800,
+    "tags": [
+      "implementation"
+    ],
+    "source": "local",
+    "time_limit_ms": 1000,
+    "memory_limit_mb": 256,
+    "tests": [
+      {
+        "input": "15\n",
+        "output": "FizzBuzz\n",
+        "hidden": false
+      },
+      {
+        "input": "3\n",
+        "output": "Fizz\n",
+        "hidden": false
+      },
+      {
+        "input": "10\n",
+        "output": "Buzz\n",
+        "hidden": true
+      },
+      {
+        "input": "7\n",
+        "output": "7\n",
+        "hidden": true
+      },
+      {
+        "input": "30\n",
+        "output": "FizzBuzz\n",
+        "hidden": true
+      }
+    ],
+    "solution": "n = int(input())\nif n % 15 == 0:\n    print(\"FizzBuzz\")\nelif n % 3 == 0:\n    print(\"Fizz\")\nelif n % 5 == 0:\n    print(\"Buzz\")\nelse:\n    print(n)"
+  }
+]
