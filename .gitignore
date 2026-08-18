@@ -3,7 +3,8 @@ __pycache__/
 *.py[cod]
 .env
 *.db
-data/
+data/*
+!data/local_problems.json
 .pytest_cache/
 .idea/
 .vscode/
