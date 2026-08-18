@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy.types import JSON
 
@@ -24,6 +24,18 @@ class Problem(Base):
     source: Mapped[str] = mapped_column(String(64))
     time_limit_ms: Mapped[int] = mapped_column(Integer)
     memory_limit_mb: Mapped[int] = mapped_column(Integer)
+    solution: Mapped[str] = mapped_column(Text, default="")
+
+
+class Test(Base):
+    __tablename__ = "tests"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    problem_id: Mapped[int] = mapped_column(ForeignKey("problems.id"), index=True)
+    input_text: Mapped[str] = mapped_column(Text)
+    output_text: Mapped[str] = mapped_column(Text)
+    hidden: Mapped[bool] = mapped_column(Boolean, default=False)
+    position: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class Submission(Base):

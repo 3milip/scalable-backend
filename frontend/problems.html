@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judge — zadania</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Judge</h1>
+      <nav>
+        <a href="index.html">Start</a>
+        <a href="problems.html">Zadania</a>
+        <a href="submissions.html">Zgłoszenia</a>
+        <a href="stats.html">Obciążenie</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Zadania</h2>
+      <p id="status">Łączenie z backendem…</p>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Tytuł</th>
+            <th>Trudność</th>
+            <th>Tagi</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </main>
+
+    <script>
+      const API = "http://127.0.0.1:8000/problems?limit=20";
+
+      async function loadProblems() {
+        try {
+          const response = await fetch(API);
+          const data = await response.json();
+          const rows = document.getElementById("rows");
+          rows.innerHTML = "";
+
+          for (const problem of data.items) {
+            const tr = document.createElement("tr");
+            tr.innerHTML =
+              "<td><a href=\"problem.html?id=" +
+              problem.id +
+              "\">" +
+              problem.title +
+              "</a></td><td>" +
+              (problem.difficulty ?? "–") +
+              "</td><td>" +
+              problem.tags.join(", ") +
+              "</td>";
+            rows.appendChild(tr);
+          }
+
+          document.getElementById("status").textContent =
+            "Pokazuję " + data.items.length + " z " + data.total + " zadań";
+        } catch (error) {
+          document.getElementById("status").textContent =
+            "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
+        }
+      }
+
+      loadProblems();
+    </script>
+  </body>
+</html>

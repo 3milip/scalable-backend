@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judge — obciążenie</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Judge</h1>
+      <nav>
+        <a href="index.html">Start</a>
+        <a href="problems.html">Zadania</a>
+        <a href="submissions.html">Zgłoszenia</a>
+        <a href="stats.html">Obciążenie</a>
+      </nav>
+    </header>
+
+    <main>
+      <h2>Obciążenie</h2>
+      <p id="status">Łączenie z backendem…</p>
+
+      <div class="cards">
+        <div class="card">
+          <span class="label">w kolejce</span>
+          <span class="value" id="queued">–</span>
+        </div>
+        <div class="card">
+          <span class="label">leci teraz</span>
+          <span class="value" id="running">–</span>
+        </div>
+        <div class="card">
+          <span class="label">skończone / min</span>
+          <span class="value" id="finished">–</span>
+        </div>
+        <div class="card">
+          <span class="label">workery</span>
+          <span class="value" id="workers">–</span>
+        </div>
+      </div>
+    </main>
+
+    <script>
+      const API = "http://127.0.0.1:8000/stats";
+
+      async function loadStats() {
+        try {
+          const response = await fetch(API);
+          const data = await response.json();
+
+          document.getElementById("queued").textContent = data.queued;
+          document.getElementById("running").textContent = data.running;
+          document.getElementById("finished").textContent = data.finished_last_minute;
+          document.getElementById("workers").textContent = data.workers;
+          document.getElementById("status").textContent = "Dane z backendu";
+        } catch (error) {
+          document.getElementById("status").textContent =
+            "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
+        }
+      }
+
+      loadStats();
+      setInterval(loadStats, 2000);
+    </script>
+  </body>
+</html>

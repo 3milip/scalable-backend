@@ -1,6 +1,9 @@
 from datetime import datetime, timedelta, timezone
+from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
 from app.db import get_db
@@ -13,12 +16,21 @@ from app.schemas import (
     StatsOut,
     SubmissionCreatedOut,
     SubmissionIn,
+    SubmissionListItemOut,
+    SubmissionListOut,
     SubmissionOut,
 )
 
 WORKERS = 4
 
 app = FastAPI(title="scalable-backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.get("/health", response_model=HealthOut)
@@ -73,6 +85,7 @@ def get_problem(problem_id: int, db: Session = Depends(get_db)):
         statement=problem.statement,
         time_limit_ms=problem.time_limit_ms,
         memory_limit_mb=problem.memory_limit_mb,
+        solution=problem.solution or "",
     )
 
 
@@ -94,6 +107,39 @@ def create_submission(payload: SubmissionIn, db: Session = Depends(get_db)):
     return SubmissionCreatedOut(id=submission.id, status=submission.status)
 
 
+@app.get("/submissions", response_model=SubmissionListOut)
+def list_submissions(
+    limit: int = Query(default=50, ge=1, le=200),
+    offset: int = Query(default=0, ge=0),
+    db: Session = Depends(get_db),
+):
+    query = db.query(Submission, Problem.title).join(
+        Problem, Problem.id == Submission.problem_id
+    )
+    total = query.count()
+    rows = (
+        query.order_by(Submission.id.desc()).offset(offset).limit(limit).all()
+    )
+    return SubmissionListOut(
+        total=total,
+        items=[
+            SubmissionListItemOut(
+                id=sub.id,
+                problem_id=sub.problem_id,
+                problem_title=title,
+                language=sub.language,
+                status=sub.status,
+                verdict=sub.verdict,
+                time_ms=sub.time_ms,
+                memory_kb=sub.memory_kb,
+                message=sub.message,
+                code=sub.code,
+            )
+            for sub, title in rows
+        ],
+    )
+
+
 @app.get("/submissions/{submission_id}", response_model=SubmissionOut)
 def get_submission(submission_id: int, db: Session = Depends(get_db)):
     submission = db.query(Submission).filter(Submission.id == submission_id).first()
@@ -108,6 +154,7 @@ def get_submission(submission_id: int, db: Session = Depends(get_db)):
         time_ms=submission.time_ms,
         memory_kb=submission.memory_kb,
         message=submission.message,
+        code=submission.code,
     )
 
 
@@ -122,3 +169,7 @@ def get_stats(db: Session = Depends(get_db)):
         .count(),
         workers=WORKERS,
     )
+
+
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")

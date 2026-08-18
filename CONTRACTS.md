@@ -32,10 +32,10 @@ Wyjście:
   "items": [
     {
       "id": 1,
-      "title": "Watermelon",
+      "title": "Suma dwóch liczb",
       "difficulty": 800,
-      "tags": ["math", "brute force"],
-      "source": "codeforces"
+      "tags": ["math", "implementation"],
+      "source": "local"
     }
   ]
 }
@@ -53,11 +53,11 @@ Wyjście:
 ```json
 {
   "id": 1,
-  "title": "Watermelon",
+  "title": "Suma dwóch liczb",
   "statement": "Opis zadania...",
   "difficulty": 800,
   "tags": ["math"],
-  "source": "codeforces",
+  "source": "local",
   "time_limit_ms": 1000,
   "memory_limit_mb": 256
 }

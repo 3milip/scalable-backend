@@ -17,6 +17,7 @@ class ProblemDetailOut(ProblemOut):
     statement: str
     time_limit_ms: int
     memory_limit_mb: int
+    solution: str
 
 
 class ProblemListOut(BaseModel):
@@ -44,6 +45,16 @@ class SubmissionOut(BaseModel):
     time_ms: int | None = None
     memory_kb: int | None = None
     message: str | None = None
+    code: str
+
+
+class SubmissionListItemOut(SubmissionOut):
+    problem_title: str
+
+
+class SubmissionListOut(BaseModel):
+    total: int
+    items: list[SubmissionListItemOut]
 
 
 class StatsOut(BaseModel):
