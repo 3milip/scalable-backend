@@ -36,6 +36,21 @@ class SubmissionCreatedOut(BaseModel):
     status: str
 
 
+class TestResultOut(BaseModel):
+    test_id: int
+    position: int
+    group: str
+    hidden: bool
+    verdict: str
+    time_ms: int | None = None
+    memory_kb: int | None = None
+    score: int = 0
+    max_score: int = 0
+    message: str | None = None
+    input: str | None = None
+    output: str | None = None
+
+
 class SubmissionOut(BaseModel):
     id: int
     problem_id: int
@@ -46,6 +61,12 @@ class SubmissionOut(BaseModel):
     memory_kb: int | None = None
     message: str | None = None
     code: str
+    score: int | None = None
+    max_score: int = 0
+
+
+class SubmissionDetailOut(SubmissionOut):
+    tests: list[TestResultOut] = []
 
 
 class SubmissionListItemOut(SubmissionOut):
@@ -60,5 +81,6 @@ class SubmissionListOut(BaseModel):
 class StatsOut(BaseModel):
     queued: int
     running: int
+    failed: int = 0
     finished_last_minute: int
     workers: int

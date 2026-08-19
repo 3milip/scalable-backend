@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -6,8 +7,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
-from app.db import get_db
-from app.models import Problem, Submission
+from app.db import get_db, init_db
+from app.models import Problem, Submission, Test
+from isolation.queue import enqueue, live_worker_count
+from app.results import problem_max_score, results_for_api
 from app.schemas import (
     HealthOut,
     ProblemDetailOut,
@@ -15,15 +18,20 @@ from app.schemas import (
     ProblemOut,
     StatsOut,
     SubmissionCreatedOut,
+    SubmissionDetailOut,
     SubmissionIn,
     SubmissionListItemOut,
     SubmissionListOut,
-    SubmissionOut,
+    TestResultOut,
 )
 
-WORKERS = 4
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    init_db()
+    yield
 
-app = FastAPI(title="scalable-backend")
+
+app = FastAPI(title="scalable-backend", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
@@ -95,15 +103,18 @@ def create_submission(payload: SubmissionIn, db: Session = Depends(get_db)):
     if problem is None:
         raise HTTPException(status_code=404, detail="Nie ma takiego zadania")
 
+    tests = db.query(Test).filter(Test.problem_id == problem.id).all()
     submission = Submission(
         problem_id=payload.problem_id,
         language=payload.language,
         code=payload.code,
         status="queued",
+        max_score=problem_max_score(tests),
     )
     db.add(submission)
     db.commit()
     db.refresh(submission)
+    enqueue(submission.id)
     return SubmissionCreatedOut(id=submission.id, status=submission.status)
 
 
@@ -134,18 +145,20 @@ def list_submissions(
                 memory_kb=sub.memory_kb,
                 message=sub.message,
                 code=sub.code,
+                score=sub.score,
+                max_score=sub.max_score,
             )
             for sub, title in rows
         ],
     )
 
 
-@app.get("/submissions/{submission_id}", response_model=SubmissionOut)
+@app.get("/submissions/{submission_id}", response_model=SubmissionDetailOut)
 def get_submission(submission_id: int, db: Session = Depends(get_db)):
     submission = db.query(Submission).filter(Submission.id == submission_id).first()
     if submission is None:
         raise HTTPException(status_code=404, detail="Nie ma takiego zgłoszenia")
-    return SubmissionOut(
+    return SubmissionDetailOut(
         id=submission.id,
         problem_id=submission.problem_id,
         language=submission.language,
@@ -155,6 +168,9 @@ def get_submission(submission_id: int, db: Session = Depends(get_db)):
         memory_kb=submission.memory_kb,
         message=submission.message,
         code=submission.code,
+        score=submission.score,
+        max_score=submission.max_score,
+        tests=[TestResultOut(**item) for item in results_for_api(db, submission)],
     )
 
 
@@ -164,10 +180,11 @@ def get_stats(db: Session = Depends(get_db)):
     return StatsOut(
         queued=db.query(Submission).filter(Submission.status == "queued").count(),
         running=db.query(Submission).filter(Submission.status == "running").count(),
+        failed=db.query(Submission).filter(Submission.status == "failed").count(),
         finished_last_minute=db.query(Submission)
         .filter(Submission.status == "done", Submission.finished_at >= one_minute_ago)
         .count(),
-        workers=WORKERS,
+        workers=live_worker_count(),
     )
 
 

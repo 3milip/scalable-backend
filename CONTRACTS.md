@@ -106,11 +106,44 @@ Wyjście:
   "verdict": "OK",
   "time_ms": 15,
   "memory_kb": 4200,
-  "message": null
+  "message": null,
+  "score": 3,
+  "max_score": 3,
+  "tests": [
+    {
+      "test_id": 1,
+      "position": 0,
+      "group": "0",
+      "hidden": false,
+      "verdict": "OK",
+      "time_ms": 12,
+      "memory_kb": 7000,
+      "score": 0,
+      "max_score": 0,
+      "message": null,
+      "input": "1 2\\n",
+      "output": "3\\n"
+    },
+    {
+      "test_id": 2,
+      "position": 1,
+      "group": "1",
+      "hidden": true,
+      "verdict": "OK",
+      "score": 1,
+      "max_score": 1,
+      "input": null,
+      "output": null
+    }
+  ]
 }
 ```
 
-`status`: `queued` (w kolejce) | `running` (leci) | `done` (koniec)
+`score` / `max_score` — punkty (przykłady mają `max_score` 0 i nie liczą się). Przy `running` tablica `tests` może być niepełna.
+
+Ukryty test: `verdict` + `group`, bez `input`/`output`. Przykład może pokazać I/O.
+
+`status`: `queued` (w kolejce) | `running` (leci) | `done` (koniec) | `failed` (worker nie dał rady)
 
 `verdict` (tylko gdy `done`):
 - `OK` — dobrze
@@ -119,6 +152,7 @@ Wyjście:
 - `MLE` — za dużo RAM
 - `RE` — wywaliło się
 - `CE` — nie skompilowało się
+- `SI` — błąd sędziego/checkera, nie wina kodu
 
 Jak nie ma takiego id: błąd 404.
 
@@ -135,7 +169,12 @@ Wyjście:
 {
   "queued": 3,
   "running": 2,
+  "failed": 1,
   "finished_last_minute": 40,
-  "workers": 4
+  "workers": 2
 }
 ```
+
+`workers` — ile procesów workera dało znać w ostatniej minucie (heartbeat), nie stała.
+
+`failed` — zgłoszenia, których worker nie dokończył 3 razy (dead letter), nie mylić z WA.

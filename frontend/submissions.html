@@ -28,6 +28,7 @@
             <th>Zadanie</th>
             <th>Status</th>
             <th>Werdykt</th>
+            <th>Punkty</th>
             <th>Czas</th>
           </tr>
         </thead>
@@ -45,20 +46,23 @@
 
           for (const item of data.items) {
             const tr = document.createElement("tr");
-            tr.innerHTML =
-              "<td><a href=\"submission.html?id=" +
-              item.id +
-              "\">" +
-              item.id +
-              "</a></td><td>" +
-              item.problem_title +
-              "</td><td>" +
-              item.status +
-              "</td><td>" +
-              (item.verdict ?? "–") +
-              "</td><td>" +
-              (item.time_ms ?? "–") +
-              "</td>";
+            const link = document.createElement("a");
+            link.href = "submission.html?id=" + item.id;
+            link.textContent = item.id;
+            const cells = [
+              link,
+              item.problem_title,
+              item.status,
+              item.verdict ?? "–",
+              formatScore(item.score, item.max_score),
+              item.time_ms ?? "–",
+            ];
+            for (const value of cells) {
+              const td = document.createElement("td");
+              if (value instanceof Node) td.appendChild(value);
+              else td.textContent = value;
+              tr.appendChild(td);
+            }
             rows.appendChild(tr);
           }
 
@@ -70,6 +74,12 @@
           document.getElementById("status").textContent =
             "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
         }
+      }
+
+      function formatScore(score, maxScore) {
+        const max = maxScore ?? 0;
+        if (score === null || score === undefined) return "– / " + max;
+        return score + " / " + max;
       }
 
       loadSubmissions();

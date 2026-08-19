@@ -25,6 +25,8 @@ class Problem(Base):
     time_limit_ms: Mapped[int] = mapped_column(Integer)
     memory_limit_mb: Mapped[int] = mapped_column(Integer)
     solution: Mapped[str] = mapped_column(Text, default="")
+    checker: Mapped[str] = mapped_column(String(16), default="exact")
+    checker_code: Mapped[str] = mapped_column(Text, default="")
 
 
 class Test(Base):
@@ -36,6 +38,8 @@ class Test(Base):
     output_text: Mapped[str] = mapped_column(Text)
     hidden: Mapped[bool] = mapped_column(Boolean, default=False)
     position: Mapped[int] = mapped_column(Integer, default=0)
+    group: Mapped[str] = mapped_column(String(16), default="0")
+    max_score: Mapped[int] = mapped_column(Integer, default=0)
 
 
 class Submission(Base):
@@ -52,3 +56,45 @@ class Submission(Base):
     message: Mapped[str | None] = mapped_column(String, nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=_now)
     finished_at: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
+    priority: Mapped[int] = mapped_column(Integer, default=0)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    worker_id: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    heartbeat_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    score: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    max_score: Mapped[int] = mapped_column(Integer, default=0)
+
+
+class SubmissionResult(Base):
+    __tablename__ = "submission_results"
+    __table_args__ = (UniqueConstraint("submission_id", "test_id"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    submission_id: Mapped[int] = mapped_column(ForeignKey("submissions.id"), index=True)
+    test_id: Mapped[int] = mapped_column(ForeignKey("tests.id"), index=True)
+    verdict: Mapped[str] = mapped_column(String(8))
+    time_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    memory_kb: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    score: Mapped[int] = mapped_column(Integer, default=0)
+    message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class Job(Base):
+    __tablename__ = "jobs"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    submission_id: Mapped[int] = mapped_column(ForeignKey("submissions.id"), index=True)
+    kind: Mapped[str] = mapped_column(String(16), default="judge")
+    status: Mapped[str] = mapped_column(String(16), default="queued", index=True)
+    priority: Mapped[int] = mapped_column(Integer, default=0)
+    attempts: Mapped[int] = mapped_column(Integer, default=0)
+    leased_by: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    heartbeat_at: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    last_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+
+class Worker(Base):
+    __tablename__ = "workers"
+
+    id: Mapped[str] = mapped_column(String(64), primary_key=True)
+    seen_at: Mapped[int] = mapped_column(Integer)

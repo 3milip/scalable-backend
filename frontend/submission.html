@@ -38,8 +38,28 @@
           <span class="label">RAM (kB)</span>
           <span class="value" id="memory">–</span>
         </div>
+        <div class="card">
+          <span class="label">punkty</span>
+          <span class="value" id="score">–</span>
+        </div>
       </div>
       <p id="message"></p>
+      <h3>Testy</h3>
+      <p id="tests-empty" class="muted">Jeszcze brak wyników (kolejka albo compile).</p>
+      <table id="tests-table" hidden>
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Grupa</th>
+            <th>Werdykt</th>
+            <th>Pkt</th>
+            <th>Czas</th>
+            <th>RAM</th>
+            <th>Komentarz</th>
+          </tr>
+        </thead>
+        <tbody id="tests-rows"></tbody>
+      </table>
       <h3>Wysłany kod</h3>
       <pre id="code"></pre>
     </main>
@@ -47,6 +67,58 @@
     <script>
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
+
+      function formatScore(score, maxScore) {
+        const max = maxScore ?? 0;
+        if (score === null || score === undefined) return "– / " + max;
+        return score + " / " + max;
+      }
+
+      function addCell(tr, text) {
+        const td = document.createElement("td");
+        td.textContent = text;
+        tr.appendChild(td);
+        return td;
+      }
+
+      function renderTests(tests) {
+        const empty = document.getElementById("tests-empty");
+        const table = document.getElementById("tests-table");
+        const body = document.getElementById("tests-rows");
+        body.innerHTML = "";
+        if (!tests.length) {
+          empty.hidden = false;
+          table.hidden = true;
+          return;
+        }
+        empty.hidden = true;
+        table.hidden = false;
+        for (const test of tests) {
+          const tr = document.createElement("tr");
+          addCell(tr, String((test.position ?? 0) + 1) + (test.hidden ? " (ukryty)" : ""));
+          addCell(tr, test.group ?? "–");
+          addCell(tr, test.verdict ?? "–");
+          addCell(tr, (test.score ?? 0) + " / " + (test.max_score ?? 0));
+          addCell(tr, test.time_ms ?? "–");
+          addCell(tr, test.memory_kb ?? "–");
+          addCell(tr, test.message ?? "");
+          body.appendChild(tr);
+          if (!test.hidden && (test.input || test.output)) {
+            const io = document.createElement("tr");
+            const td = document.createElement("td");
+            td.colSpan = 7;
+            td.className = "io-cell";
+            const preIn = document.createElement("pre");
+            preIn.textContent = "wejście:\n" + (test.input ?? "");
+            const preOut = document.createElement("pre");
+            preOut.textContent = "wyjście wzorcowe:\n" + (test.output ?? "");
+            td.appendChild(preIn);
+            td.appendChild(preOut);
+            io.appendChild(td);
+            body.appendChild(io);
+          }
+        }
+      }
 
       if (!id) {
         document.getElementById("status").textContent =
@@ -70,10 +142,12 @@
           document.getElementById("verdict").textContent = sub.verdict ?? "–";
           document.getElementById("time").textContent = sub.time_ms ?? "–";
           document.getElementById("memory").textContent = sub.memory_kb ?? "–";
+          document.getElementById("score").textContent = formatScore(sub.score, sub.max_score);
           document.getElementById("message").textContent = sub.message ?? "";
           document.getElementById("code").textContent = sub.code ?? "";
           document.getElementById("status").textContent =
             "Zadanie #" + sub.problem_id + " · " + sub.language;
+          renderTests(sub.tests || []);
         } catch (error) {
           document.getElementById("status").textContent =
             "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";

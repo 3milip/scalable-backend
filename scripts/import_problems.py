@@ -4,8 +4,9 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.db import Base, SessionLocal, engine
+from app.db import Base, SessionLocal, engine, init_db
 from app.models import Problem, Test
+from app.results import meta_from_sample
 
 JSON_PATH = Path("data/local_problems.json")
 
@@ -17,7 +18,7 @@ def main() -> None:
         )
 
     Base.metadata.drop_all(bind=engine)
-    Base.metadata.create_all(bind=engine)
+    init_db()
     records = json.loads(JSON_PATH.read_text(encoding="utf-8"))
 
     db = SessionLocal()
@@ -33,18 +34,29 @@ def main() -> None:
                 time_limit_ms=item["time_limit_ms"],
                 memory_limit_mb=item["memory_limit_mb"],
                 solution=item.get("solution", ""),
+                checker=item.get("checker", "exact"),
+                checker_code=item.get("checker_code", ""),
             )
             db.add(problem)
             db.flush()
 
             for index, test in enumerate(item.get("tests", [])):
+                hidden = test.get("hidden", False)
+                group, max_score = meta_from_sample(
+                    hidden,
+                    group=test.get("group"),
+                    max_score=test.get("max_score"),
+                    position=index,
+                )
                 db.add(
                     Test(
                         problem_id=problem.id,
                         input_text=test["input"],
                         output_text=test["output"],
-                        hidden=test.get("hidden", False),
+                        hidden=hidden,
                         position=index,
+                        group=group,
+                        max_score=max_score,
                     )
                 )
 

@@ -38,6 +38,10 @@
           <span class="label">workery</span>
           <span class="value" id="workers">–</span>
         </div>
+        <div class="card">
+          <span class="label">failed</span>
+          <span class="value" id="failed">–</span>
+        </div>
       </div>
     </main>
 
@@ -53,6 +57,7 @@
           document.getElementById("running").textContent = data.running;
           document.getElementById("finished").textContent = data.finished_last_minute;
           document.getElementById("workers").textContent = data.workers;
+          document.getElementById("failed").textContent = data.failed ?? 0;
           document.getElementById("status").textContent = "Dane z backendu";
         } catch (error) {
           document.getElementById("status").textContent =

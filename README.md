@@ -1,53 +1,106 @@
 # scalable-backend
 
-Backend aplikacji do zadań programowania konkursowego.
+Sędzia zadań programistycznych: kolejka jobów, ocena w Dockerze, punkty grupami.
 
-Zgłoszony kod nie leci na hoście. Worker odpala każdy test przez `isolation/iso.sh` (Docker: bez sieci, limit RAM/CPU, timeout w kontenerze).
+Kod zawodnika nie leci na hoście. Każdy test (i compile, i custom checker) idzie przez `isolation/iso.sh`.
 
-## Wymagania
+## Odpalenie (skopiuj)
 
-- Python 3.12+
-- Docker (Desktop + integracja WSL 2, albo zwykły Linux)
-- Na Windowsie: WSL 2 — worker woła `iso.sh` przez `wsl`
+Wymagane: Python 3.12+, Docker Desktop włączony (WSL 2). Polecenia odpalaj w katalogu repo.
 
-Przed pierwszym jobem dociągnij obraz sędziego (worker robi to też przy starcie):
+**1. Raz — setup** (nowe okno PowerShell):
 
 ```powershell
-python isolation/pull_images.py
-```
-
-## Uruchomienie
-
-Dwa procesy: API i worker.
-
-```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install -r requirements.txt
-uvicorn app.main:app --reload
+python isolation/pull_images.py
+python scripts/import_problems.py
 ```
 
-W drugim terminalu (to samo venv):
+Import wczytuje zadania do bazy. Odpalaj go tylko na start albo gdy chcesz **wyzerować** zgłoszenia.
+
+**2. Terminal 1 — strona i API** (zostaw włączone):
 
 ```powershell
-python scripts/worker.py
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+python -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 ```
 
-Wejdź na: http://127.0.0.1:8000/health
+**3. Terminal 2 — worker** (bez tego zgłoszenia wiszą w `queued`):
 
-Dokumentacja API: http://127.0.0.1:8000/docs
+```powershell
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+.\.venv\Scripts\Activate.ps1
+python isolation/worker.py
+```
 
-Frontend (statyczny): pliki w `frontend/`.
+Potem wejdź na: http://127.0.0.1:8000/
 
-Bez Dockera / WSL worker oznaczy zgłoszenie jako `RE` i napisze, że izolacji nie ma.
+- zdrowie: http://127.0.0.1:8000/health
+- API: http://127.0.0.1:8000/docs
+
+Zatrzymanie: `Ctrl+C` w obu oknach. Job w trakcie wraca do kolejki i **nie spala** próby.
+
+Bez Dockera / WSL worker się nie uruchomi.
+
+## Zgłoszenie ≠ job
+
+- **Zgłoszenie** — to, co widać na stronie (kod, werdykt, punkty, tabela testów).
+- **Job** — jednostka w kolejce (`jobs`). Na razie jeden rodzaj: `judge` (compile + wszystkie testy).
+
+`POST /submissions` zapisuje zgłoszenie i robi `enqueue`. Worker robi `claim` na **jobie**, nie na wierszu zgłoszenia.
+
+Kilka workerów: jeden job bierze jeden proces (atomowy lease, 60 s, heartbeat co 10 s). Po 3 wygasłych lease’ach job i zgłoszenie idą do `failed`.
+
+## Werdykty
+
+- `OK` `WA` `TLE` `MLE` `RE` `CE` — ocena kodu
+- `SI` — padł checker / sędzia, nie wina zawodnika
+- **`failed`** — worker trzy razy umarł w trakcie; to **nie jest WA**
+
+Punkty jak OIOIOI: testy w **grupach**. Grupa = minimum (jeden WA zeruje całą paczkę). Zadanie = suma grup. Maks to suma grup, nie suma testów. Przykłady (`max_score = 0`) się nie liczą. Odpalane są wszystkie testy (poza CE na compile).
+
+## Import zadań
+
+```powershell
+python scripts/import_problems.py
+```
+
+Kasuje bazę i wczytuje `data/local_problems.json`.
+
+v1: przykłady → grupa `"0"`, 0 pkt; każdy ukryty test → **własna** grupa (numer pozycji), 1 pkt, więc pełny OK = pełne punkty. W JSON ta sama `group` na kilku testach = paczka OI (wszystko albo nic). Można nadpisać `group` / `max_score`.
+
+Checker (pole zadania, default `exact`):
+
+- `exact` — porównanie znormalizowanego tekstu
+- `tokens` — sekwencja słów, spacje nieważne
+- `float` — tokeny, liczby z eps `1e-6`
+- `custom` — skrypt w Dockerze (`checker_code`); exit 0 = OK, 1 lub 2 = WA, reszta = SI
+
+## Testy
+
+```powershell
+python -m unittest tests.test_queue tests.test_results tests.test_scoring tests.test_judge tests.test_checker -v
+```
+
+## Druga maszyna
+
+Nie kopiuj `data/app.db` przez sieć. Kolejka jest dziś SQLite na jednym komputerze. Wspólny Postgres albo Redis to osobny silnik za tym samym portem (`claim` / `ack` / `nack`) — nie jest w tym README.
+
+`iso.sh` i tak zostaje lokalny: każda maszyna ma własną pulę Dockera.
 
 ## Foldery
 
 - `app/main.py` — API
-- `app/db.py` — SQLite
-- `app/models.py` — zadania, testy, zgłoszenia
-- `scripts/worker.py` — kolejka zgłoszeń, woła `iso.sh`
-- `isolation/pull_images.py` — dociąga obrazy Dockera przed pierwszym jobem
-- `isolation/iso.sh` — sandbox Dockera
-- `frontend/` — strony HTML
-
+- `isolation/` — kolejka, izolacja, sędzia, checker, worker (łatwe do wyjęcia)
+  - `queue.py` — enqueue / claim / heartbeat / ack / nack / fail
+  - `isolate.py` + `iso.sh` — sandbox Dockera
+  - `pull_images.py` — obraz sędziego
+  - `judge.py` — compile, przykłady, testy, punkty
+  - `checker.py` — exact / tokens / float / custom
+  - `worker.py` — pętla claim → judge → ack
+- `scripts/worker.py` — skrót do `isolation/worker.py`
+- `frontend/` — HTML (serwisowane z `/`)
