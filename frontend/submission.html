@@ -64,6 +64,7 @@
       <pre id="code"></pre>
     </main>
 
+    <script src="config.js"></script>
     <script>
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
@@ -130,7 +131,7 @@
 
       async function loadSubmission() {
         try {
-          const response = await fetch("http://127.0.0.1:8000/submissions/" + id);
+          const response = await fetch(API_BASE + "/submissions/" + id);
           if (response.status === 404) {
             document.getElementById("status").textContent = "Nie ma takiego zgłoszenia";
             return;
@@ -150,7 +151,7 @@
           renderTests(sub.tests || []);
         } catch (error) {
           document.getElementById("status").textContent =
-            "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
+            "Nie mogę połączyć. Odpal backend na porcie 8000.";
         }
       }
     </script>

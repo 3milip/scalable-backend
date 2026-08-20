@@ -45,12 +45,11 @@
       </div>
     </main>
 
+    <script src="config.js"></script>
     <script>
-      const API = "http://127.0.0.1:8000/stats";
-
       async function loadStats() {
         try {
-          const response = await fetch(API);
+          const response = await fetch(API_BASE + "/stats");
           const data = await response.json();
 
           document.getElementById("queued").textContent = data.queued;
@@ -61,7 +60,7 @@
           document.getElementById("status").textContent = "Dane z backendu";
         } catch (error) {
           document.getElementById("status").textContent =
-            "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
+            "Nie mogę połączyć. Odpal backend na porcie 8000.";
         }
       }
 

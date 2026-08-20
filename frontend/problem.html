@@ -50,6 +50,7 @@ print(1)</textarea>
       <p id="submit-status"></p>
     </main>
 
+    <script src="config.js"></script>
     <script>
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
@@ -63,7 +64,7 @@ print(1)</textarea>
 
       async function loadProblem(id) {
         try {
-          const response = await fetch("http://127.0.0.1:8000/problems/" + id);
+          const response = await fetch(API_BASE + "/problems/" + id);
           if (response.status === 404) {
             document.getElementById("status").textContent = "Nie ma takiego zadania";
             return;
@@ -96,7 +97,7 @@ print(1)</textarea>
             const box = document.getElementById("submit-status");
             box.textContent = "Wysyłam…";
             try {
-              const response = await fetch("http://127.0.0.1:8000/submissions", {
+              const response = await fetch(API_BASE + "/submissions", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
@@ -124,7 +125,7 @@ print(1)</textarea>
           };
         } catch (error) {
           document.getElementById("status").textContent =
-            "Nie mogę połączyć. Odpal backend: uvicorn app.main:app --reload";
+            "Nie mogę połączyć. Odpal backend na porcie 8000.";
         }
       }
     </script>
