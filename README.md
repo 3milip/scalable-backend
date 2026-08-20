@@ -46,6 +46,35 @@ Zatrzymanie: `Ctrl+C` w obu oknach. Job w trakcie wraca do kolejki i **nie spala
 
 Bez Dockera / WSL worker się nie uruchomi.
 
+## OIOIOI (osobny stack)
+
+Nie zastępuje uvicorn ani `isolation/worker.py`. To oficjalny compose SIO2: strona contestów na **:8001**, wasz sędzia zostaje na **:8000**. Zgłoszenia nie przechodzą między stosami.
+
+Obraz: `ghcr.io/sio2project/oioioi` ([GHCR](https://github.com/sio2project/oioioi/pkgs/container/oioioi) — to jest oficjalny obraz; tag z Docker Huba z ich compose nie istnieje). Compose: `oioioi/docker-compose.yml`. Lokalnie tylko port **8001**, żeby nie zająć `:8000`.
+
+**Raz — opcjonalnie** pin tagu (domyślnie `master`):
+
+```powershell
+Copy-Item oioioi\.env.example oioioi\.env
+```
+
+**Start** (Docker Desktop włączony):
+
+```powershell
+Set-Location oioioi
+docker compose up
+```
+
+Więcej workerów OIOIOI:
+
+```powershell
+docker compose up --scale worker=3
+```
+
+Potem: http://127.0.0.1:8001/ — konto `admin` / `admin`. Zmień hasło od razu.
+
+Stop: `Ctrl+C` albo `docker compose down`. Postgres i testy OIOIOI siedzą w wolumenach Dockera, nie w `data/app.db`.
+
 ## Zgłoszenie ≠ job
 
 - **Zgłoszenie** — to, co widać na stronie (kod, werdykt, punkty, tabela testów).
@@ -104,3 +133,4 @@ Nie kopiuj `data/app.db` przez sieć. Kolejka jest dziś SQLite na jednym komput
   - `worker.py` — pętla claim → judge → ack
 - `scripts/worker.py` — skrót do `isolation/worker.py`
 - `frontend/` — HTML (serwisowane z `/`)
+- `oioioi/` — oficjalny Docker OIOIOI (web :8001, Postgres, RabbitMQ, worker)
