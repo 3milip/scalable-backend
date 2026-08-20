@@ -5,6 +5,20 @@ class HealthOut(BaseModel):
     status: str
 
 
+class AuthIn(BaseModel):
+    username: str
+    password: str
+
+
+class AuthOut(BaseModel):
+    token: str
+    username: str
+
+
+class MeOut(BaseModel):
+    username: str
+
+
 class ProblemOut(BaseModel):
     id: int
     title: str
@@ -84,3 +98,29 @@ class StatsOut(BaseModel):
     failed: int = 0
     finished_last_minute: int
     workers: int
+
+
+class CallbackTestIn(BaseModel):
+    position: int = 0
+    group: str = "0"
+    hidden: bool = False
+    verdict: str
+    score: int = 0
+    max_score: int = 0
+    time_ms: int | None = None
+    memory_kb: int | None = None
+    message: str | None = None
+    input: str | None = None
+    output: str | None = None
+
+
+class CallbackIn(BaseModel):
+    job_id: str
+    status: str
+    verdict: str | None = None
+    score: int | None = None
+    max_score: int | None = None
+    time_ms: int | None = None
+    memory_kb: int | None = None
+    message: str | None = None
+    tests: list[CallbackTestIn] = []

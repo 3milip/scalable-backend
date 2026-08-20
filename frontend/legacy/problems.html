@@ -34,12 +34,13 @@
       </table>
     </main>
 
+    <script src="auth.js"></script>
     <script>
-      const API = "http://127.0.0.1:8000/problems?limit=20";
+      const PROBLEMS_URL = API + "/problems?limit=20";
 
       async function loadProblems() {
         try {
-          const response = await fetch(API);
+          const response = await fetch(PROBLEMS_URL);
           const data = await response.json();
           const rows = document.getElementById("rows");
           rows.innerHTML = "";

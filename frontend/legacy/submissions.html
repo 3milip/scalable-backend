@@ -37,10 +37,20 @@
       </table>
     </main>
 
+    <script src="auth.js"></script>
     <script>
+      if (!requireLogin()) {
+        /* redirect */
+      }
       async function loadSubmissions() {
         try {
-          const response = await fetch("http://127.0.0.1:8000/submissions?limit=50");
+          const response = await fetch(API + "/submissions?limit=50", {
+            headers: authHeaders(),
+          });
+          if (response.status === 401) {
+            location.href = "login.html?next=submissions.html";
+            return;
+          }
           const data = await response.json();
           const rows = document.getElementById("rows");
           rows.innerHTML = "";

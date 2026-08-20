@@ -65,7 +65,11 @@
       <pre id="code"></pre>
     </main>
 
+    <script src="auth.js"></script>
     <script>
+      if (!requireLogin()) {
+        /* redirect */
+      }
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
 
@@ -131,7 +135,9 @@
 
       async function loadSubmission() {
         try {
-          const response = await fetch("http://127.0.0.1:8000/submissions/" + id);
+          const response = await fetch(API + "/submissions/" + id, {
+            headers: authHeaders(),
+          });
           if (response.status === 404) {
             document.getElementById("status").textContent = "Nie ma takiego zgłoszenia";
             return;

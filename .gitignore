@@ -8,3 +8,7 @@ data/*
 .pytest_cache/
 .idea/
 .vscode/
+frontend/node_modules/
+frontend/dist/
+sprawdzarka/data/
+.ai

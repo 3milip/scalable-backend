@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="pl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Judge — logowanie</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Judge</h1>
+      <nav>
+        <a href="index.html">Start</a>
+        <a href="problems.html">Zadania</a>
+        <a href="submissions.html">Zgłoszenia</a>
+      </nav>
+    </header>
+    <main>
+      <h2>Konto</h2>
+      <p class="muted">
+        To samo konto powstaje w OIOIOI. Zgłoszenia z tej strony idą jako Ty do contestu
+        <code>local</code>.
+      </p>
+      <p id="status"></p>
+      <form id="login-form">
+        <h3>Logowanie</h3>
+        <p>
+          <label>Login <input name="username" required minlength="3" maxlength="32" /></label>
+        </p>
+        <p>
+          <label>Hasło <input name="password" type="password" required minlength="6" /></label>
+        </p>
+        <p><button type="submit">Zaloguj</button></p>
+      </form>
+      <form id="register-form">
+        <h3>Rejestracja</h3>
+        <p>
+          <label>Login <input name="username" required minlength="3" maxlength="32" /></label>
+        </p>
+        <p>
+          <label>Hasło <input name="password" type="password" required minlength="6" /></label>
+        </p>
+        <p><button type="submit">Załóż konto</button></p>
+      </form>
+    </main>
+    <script src="auth.js"></script>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const next = params.get("next") || "problems.html";
+
+      async function send(path, form) {
+        const status = document.getElementById("status");
+        status.textContent = "Czekaj…";
+        const body = {
+          username: form.username.value,
+          password: form.password.value,
+        };
+        try {
+          const response = await fetch(API + path, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          const data = await response.json();
+          if (!response.ok) {
+            status.textContent = data.detail || "Błąd " + response.status;
+            return;
+          }
+          localStorage.setItem(TOKEN_KEY, data.token);
+          localStorage.setItem(USER_KEY, data.username);
+          location.href = next;
+        } catch (error) {
+          status.textContent = "Nie mogę połączyć z backendem.";
+        }
+      }
+
+      document.getElementById("login-form").onsubmit = function (event) {
+        event.preventDefault();
+        send("/auth/login", event.target);
+      };
+      document.getElementById("register-form").onsubmit = function (event) {
+        event.preventDefault();
+        send("/auth/register", event.target);
+      };
+    </script>
+  </body>
+</html>

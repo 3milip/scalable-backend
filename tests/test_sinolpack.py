@@ -18,7 +18,7 @@ class SinolpackTests(unittest.TestCase):
             "statement": "Wczytaj a i b.",
             "time_limit_ms": 1000,
             "memory_limit_mb": 256,
-            "solution": "print(sum(map(int, input().split())))\n",
+            "solution": "#include <iostream>\nint main() { return 0; }\n",
             "tests": [
                 {"input": "1 2\n", "output": "3\n", "hidden": False},
                 {"input": "0 0\n", "output": "0\n", "hidden": True},
@@ -31,8 +31,9 @@ class SinolpackTests(unittest.TestCase):
         self.assertIn("loca/out/loca0.out", names)
         self.assertIn("loca/in/loca1.in", names)
         self.assertIn("loca/in/loca2.in", names)
-        self.assertNotIn("loca/prog/loca.py", names)
-        self.assertIn("loca/attachments/wzorcowka.py", names)
+        self.assertIn("loca/prog/loca.cpp", names)
+        self.assertIn("loca/attachments/wzorcowka.cpp", names)
+        self.assertNotIn("loca/attachments/wzorcowka.py", names)
         config = files_for_problem(item)["loca/config.yml"].decode()
         self.assertIn("time_limit: 1000", config)
         self.assertIn("memory_limit: 262144", config)

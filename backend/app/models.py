@@ -42,10 +42,24 @@ class Test(Base):
     max_score: Mapped[int] = mapped_column(Integer, default=0)
 
 
+class User(Base):
+    __tablename__ = "users"
+    __table_args__ = (UniqueConstraint("username"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    username: Mapped[str] = mapped_column(String(32), index=True)
+    password_hash: Mapped[str] = mapped_column(String(255))
+    session_token: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
+    oioioi_token: Mapped[str | None] = mapped_column(String(64), nullable=True)
+
+
 class Submission(Base):
     __tablename__ = "submissions"
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id"), nullable=True, index=True)
+    oioioi_id: Mapped[int | None] = mapped_column(Integer, nullable=True, index=True)
+    judge_job_id: Mapped[str | None] = mapped_column(String(64), nullable=True, index=True)
     problem_id: Mapped[int] = mapped_column(ForeignKey("problems.id"))
     language: Mapped[str] = mapped_column(String(32))
     code: Mapped[str] = mapped_column(Text)

@@ -2,7 +2,9 @@ import json
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_ROOT / "backend"))
+sys.path.insert(0, str(_ROOT))
 
 from app.db import Base, SessionLocal, engine, init_db
 from app.models import Problem, Test

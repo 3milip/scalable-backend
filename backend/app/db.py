@@ -38,7 +38,7 @@ def get_db():
 
 def init_db() -> None:
     """WAL, create_all, brakujące kolumny na istniejącym pliku."""
-    from app.models import Job, SubmissionResult, Worker  # noqa: F401
+    from app.models import Job, SubmissionResult, User, Worker  # noqa: F401
 
     sqlite_path().parent.mkdir(parents=True, exist_ok=True)
     with engine.begin() as conn:
@@ -62,6 +62,9 @@ def _migrate_submissions() -> None:
         "last_error": "TEXT",
         "score": "INTEGER",
         "max_score": "INTEGER NOT NULL DEFAULT 0",
+        "user_id": "INTEGER",
+        "oioioi_id": "INTEGER",
+        "judge_job_id": "VARCHAR(64)",
     }
     with engine.begin() as conn:
         rows = conn.execute(text("PRAGMA table_info(submissions)")).fetchall()

@@ -36,13 +36,19 @@
           <label>
             Język
             <select id="language">
-              <option value="python">python</option>
+              <option value="cpp" selected>C++</option>
             </select>
           </label>
         </p>
         <p>
-          <textarea id="code" rows="10" cols="60" required>
-print(1)</textarea>
+          <textarea id="code" rows="12" cols="60" required>
+#include &lt;iostream&gt;
+using namespace std;
+
+int main() {
+    return 0;
+}
+</textarea>
         </p>
         <p>
           <button type="submit">Wyślij</button>
@@ -51,7 +57,11 @@ print(1)</textarea>
       <p id="submit-status"></p>
     </main>
 
+    <script src="auth.js"></script>
     <script>
+      if (!requireLogin()) {
+        /* redirect */
+      }
       const params = new URLSearchParams(window.location.search);
       const id = params.get("id");
 
@@ -64,7 +74,7 @@ print(1)</textarea>
 
       async function loadProblem(id) {
         try {
-          const response = await fetch("http://127.0.0.1:8000/problems/" + id);
+          const response = await fetch(API + "/problems/" + id);
           if (response.status === 404) {
             document.getElementById("status").textContent = "Nie ma takiego zadania";
             return;
@@ -97,9 +107,9 @@ print(1)</textarea>
             const box = document.getElementById("submit-status");
             box.textContent = "Wysyłam…";
             try {
-              const response = await fetch("http://127.0.0.1:8000/submissions", {
+              const response = await fetch(API + "/submissions", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: authHeaders({ "Content-Type": "application/json" }),
                 body: JSON.stringify({
                   problem_id: Number(id),
                   language: document.getElementById("language").value,
@@ -107,6 +117,10 @@ print(1)</textarea>
                 }),
               });
               const created = await response.json();
+              if (response.status === 401) {
+                location.href = "login.html?next=" + encodeURIComponent(location.href);
+                return;
+              }
               if (!response.ok) {
                 box.textContent = "Błąd: " + (created.detail || response.status);
                 return;

@@ -1,57 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="pl">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Contest — OIOIOI</title>
-    <link rel="stylesheet" href="style.css" />
+    <title>Judge</title>
   </head>
   <body>
-    <header>
-      <h1>Contest</h1>
-      <nav>
-        <a href="index.html">Start</a>
-        <a href="/contest">OIOIOI</a>
-        <a href="problems.html">Laboratorium</a>
-        <a href="submissions.html">API zgłoszenia</a>
-        <a href="stats.html">Kolejka API</a>
-      </nav>
-    </header>
-
-    <main>
-      <h2>Contest jest w OIOIOI</h2>
-      <p>
-        Logowanie, zadania, ranking i ocena kodu — to oficjalny SIO2.
-        Wasz serwer na tym porcie zostaje API i laboratorium (kolejka, Docker).
-      </p>
-
-      <p>
-        <a class="cta" href="/contest">Otwórz OIOIOI</a>
-      </p>
-      <p class="muted">http://127.0.0.1:8001/ — konto <code>admin</code> / <code>admin</code>, zmień hasło.</p>
-
-      <h3>Jak to odpalić</h3>
-      <ol>
-        <li>Docker Desktop włączony</li>
-        <li>W <code>oioioi/</code>: <code>docker compose up</code></li>
-        <li>Kliknij „Otwórz OIOIOI”, zaloguj się</li>
-        <li>Zadania z tego repo: <code>python scripts/push_to_oioioi.py</code> (zip + wgranie do contestu <code>local</code>)</li>
-      </ol>
-
-      <div class="cards">
-        <a class="card" href="/contest">
-          <span class="label">contest</span>
-          <span class="value">OIOIOI</span>
-        </a>
-        <a class="card" href="problems.html">
-          <span class="label">laboratorium</span>
-          <span class="value">API</span>
-        </a>
-        <a class="card" href="/docs">
-          <span class="label">dokumentacja</span>
-          <span class="value">/docs</span>
-        </a>
-      </div>
-    </main>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

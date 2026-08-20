@@ -83,7 +83,8 @@ def files_for_problem(item: dict) -> dict[str, bytes]:
     files[f"{short}/attachments/tresc.txt"] = item.get("statement", "").encode("utf-8")
     solution = item.get("solution") or ""
     if solution.strip():
-        files[f"{short}/attachments/wzorcowka.py"] = solution.encode("utf-8")
+        files[f"{short}/prog/{short}.cpp"] = solution.encode("utf-8")
+        files[f"{short}/attachments/wzorcowka.cpp"] = solution.encode("utf-8")
     return files
 
 

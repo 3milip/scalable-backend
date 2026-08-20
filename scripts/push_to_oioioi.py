@@ -4,15 +4,19 @@ from __future__ import annotations
 
 import subprocess
 import sys
+import time
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+_ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(_ROOT / "backend"))
+sys.path.insert(0, str(_ROOT))
 
 from app.sinolpack import export_json
 
 REPO = Path(__file__).resolve().parents[1]
 COMPOSE_FILE = REPO / "oioioi" / "docker-compose.yml"
 ATTACH = REPO / "oioioi" / "attach_problems.py"
+ENABLE_COMPILERS = REPO / "oioioi" / "enable_system_compilers.py"
 PACK_HOST = REPO / "data" / "sinolpack"
 PACK_CONT = "/tmp/sinolpack"
 
@@ -55,6 +59,50 @@ def main() -> int:
         ["docker", "exec", "-u", "root", cid, "chown", "-R", "oioioi:oioioi", PACK_CONT],
         check=True,
     )
+    subprocess.run(
+        ["docker", "cp", str(ENABLE_COMPILERS), f"{cid}:/tmp/enable_system_compilers.py"],
+        check=True,
+    )
+    patched = subprocess.run(
+        ["docker", "exec", cid, "python", "/tmp/enable_system_compilers.py"],
+        text=True,
+        capture_output=True,
+    )
+    sys.stdout.write(patched.stdout or "")
+    if patched.returncode != 0:
+        sys.stderr.write(patched.stderr or "enable_system_compilers failed\n")
+        return patched.returncode
+    if "enabled" in (patched.stdout or ""):
+        print("Restart supervisor…", flush=True)
+        subprocess.run(
+            [
+                "docker",
+                "exec",
+                "-w",
+                "/sio2/deployment",
+                cid,
+                "./manage.py",
+                "supervisor",
+                "restart",
+                "all",
+            ],
+            check=False,
+        )
+        for _ in range(30):
+            probe = subprocess.run(
+                [
+                    "docker",
+                    "exec",
+                    cid,
+                    "python",
+                    "-c",
+                    "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/', timeout=2)",
+                ],
+                capture_output=True,
+            )
+            if probe.returncode == 0:
+                break
+            time.sleep(2)
     subprocess.run(
         ["docker", "cp", str(ATTACH), f"{cid}:/tmp/attach_problems.py"],
         check=True,

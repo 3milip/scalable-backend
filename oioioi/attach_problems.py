@@ -58,6 +58,19 @@ def ensure_contest() -> tuple[Contest, Round]:
     if round_obj is None:
         round_obj = contest.round_set.create(name="Runda 1")
         print("round created")
+    from django.utils import timezone
+
+    now = timezone.now()
+    changed = False
+    if round_obj.results_date is None:
+        round_obj.results_date = round_obj.start_date or now
+        changed = True
+    if getattr(round_obj, "public_results_date", None) is None and hasattr(round_obj, "public_results_date"):
+        round_obj.public_results_date = round_obj.results_date
+        changed = True
+    if changed:
+        round_obj.save()
+        print("round results_date set")
     RegistrationAvailabilityConfig.objects.get_or_create(
         contest=contest,
         defaults={"enabled": "YES"},

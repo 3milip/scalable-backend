@@ -159,12 +159,14 @@ label {
 
 select,
 textarea,
+input,
 button {
   font: inherit;
 }
 
 select,
-textarea {
+textarea,
+input {
   width: 100%;
   margin-top: 6px;
   padding: 10px 12px;

@@ -46,12 +46,11 @@
       </div>
     </main>
 
+    <script src="auth.js"></script>
     <script>
-      const API = "http://127.0.0.1:8000/stats";
-
       async function loadStats() {
         try {
-          const response = await fetch(API);
+          const response = await fetch(API + "/stats");
           const data = await response.json();
 
           document.getElementById("queued").textContent = data.queued;
