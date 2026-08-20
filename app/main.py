@@ -1,9 +1,11 @@
+import os
 from contextlib import asynccontextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy.orm import Session
 
@@ -41,9 +43,18 @@ app.add_middleware(
 )
 
 
+OIOIOI_URL = os.environ.get("OIOIOI_URL", "http://127.0.0.1:8001").rstrip("/")
+
+
 @app.get("/health", response_model=HealthOut)
 def health():
     return {"status": "ok"}
+
+
+@app.get("/contest", include_in_schema=False)
+def contest():
+    """Contest jest w OIOIOI, nie w HTML-u laboratorium."""
+    return RedirectResponse(f"{OIOIOI_URL}/", status_code=307)
 
 
 @app.get("/problems", response_model=ProblemListOut)

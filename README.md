@@ -1,10 +1,36 @@
 # scalable-backend
 
-Sędzia zadań programistycznych: kolejka jobów, ocena w Dockerze, punkty grupami.
+**Contest** (logowanie, zadania, ranking, ocena) to **OIOIOI** — oficjalny SIO2.
+Wasze FastAPI na `:8000` to API i laboratorium (kolejka, izolacja w Dockerze, testy).
 
-Kod zawodnika nie leci na hoście. Każdy test (i compile, i custom checker) idzie przez `isolation/iso.sh`.
+Kod zawodnika w laboratorium nie leci na hoście. Każdy test (i compile, i custom checker) idzie przez `isolation/iso.sh`.
 
-## Odpalenie (skopiuj)
+## Contest — OIOIOI
+
+Obraz: `ghcr.io/sio2project/oioioi` ([GHCR](https://github.com/sio2project/oioioi/pkgs/container/oioioi)). Compose: `oioioi/docker-compose.yml`. Web na **:8001**, żeby nie zająć uvicorna na `:8000`.
+
+```powershell
+Set-Location oioioi
+docker compose up
+```
+
+Strona: http://127.0.0.1:8001/ albo z laboratorium: http://127.0.0.1:8000/contest
+
+Konto: `admin` / `admin` (jeśli nie ma: `docker exec oioioi-web-1 ./manage.py loaddata /sio2/oioioi/extra/dbdata/default_admin.json`). Zmień hasło od razu.
+
+Wasze zadania do OIOIOI (zip + wgranie, bez klikania):
+
+```powershell
+python scripts/push_to_oioioi.py
+```
+
+Tworzy contest `local` i paczki w `data/sinolpack/`. Potem: http://127.0.0.1:8001/c/local/
+
+Stop: `Ctrl+C` albo `docker compose down`. Dane OIOIOI są w wolumenach Dockera, nie w `data/app.db`.
+
+Więcej workerów SIO2: `docker compose up --scale worker=3`
+
+## Laboratorium API (skopiuj)
 
 Wymagane: Python 3.12+, Docker Desktop włączony (WSL 2). Polecenia odpalaj w katalogu repo.
 
@@ -44,36 +70,7 @@ Potem wejdź na: http://127.0.0.1:8000/
 
 Zatrzymanie: `Ctrl+C` w obu oknach. Job w trakcie wraca do kolejki i **nie spala** próby.
 
-Bez Dockera / WSL worker się nie uruchomi.
-
-## OIOIOI (osobny stack)
-
-Nie zastępuje uvicorn ani `isolation/worker.py`. To oficjalny compose SIO2: strona contestów na **:8001**, wasz sędzia zostaje na **:8000**. Zgłoszenia nie przechodzą między stosami.
-
-Obraz: `ghcr.io/sio2project/oioioi` ([GHCR](https://github.com/sio2project/oioioi/pkgs/container/oioioi) — to jest oficjalny obraz; tag z Docker Huba z ich compose nie istnieje). Compose: `oioioi/docker-compose.yml`. Lokalnie tylko port **8001**, żeby nie zająć `:8000`.
-
-**Raz — opcjonalnie** pin tagu (domyślnie `master`):
-
-```powershell
-Copy-Item oioioi\.env.example oioioi\.env
-```
-
-**Start** (Docker Desktop włączony):
-
-```powershell
-Set-Location oioioi
-docker compose up
-```
-
-Więcej workerów OIOIOI:
-
-```powershell
-docker compose up --scale worker=3
-```
-
-Potem: http://127.0.0.1:8001/ — konto `admin` / `admin`. Zmień hasło od razu.
-
-Stop: `Ctrl+C` albo `docker compose down`. Postgres i testy OIOIOI siedzą w wolumenach Dockera, nie w `data/app.db`.
+Bez Dockera / WSL worker laboratorium się nie uruchomi. Contest OIOIOI ma własnego workera w compose.
 
 ## Zgłoszenie ≠ job
 
@@ -112,7 +109,7 @@ Checker (pole zadania, default `exact`):
 ## Testy
 
 ```powershell
-python -m unittest tests.test_queue tests.test_results tests.test_scoring tests.test_judge tests.test_checker -v
+python -m unittest tests.test_queue tests.test_results tests.test_scoring tests.test_judge tests.test_checker tests.test_sinolpack -v
 ```
 
 ## Druga maszyna
@@ -132,5 +129,9 @@ Nie kopiuj `data/app.db` przez sieć. Kolejka jest dziś SQLite na jednym komput
   - `checker.py` — exact / tokens / float / custom
   - `worker.py` — pętla claim → judge → ack
 - `scripts/worker.py` — skrót do `isolation/worker.py`
-- `frontend/` — HTML (serwisowane z `/`)
+- `scripts/export_sinolpack.py` — zip-y SIO z `local_problems.json`
+- `scripts/push_to_oioioi.py` — eksport + `manage.py addproblem` do lokalnego OIOIOI
+- `oioioi/attach_problems.py` — contest `local` i przypięcie zadań (leci w kontenerze web)
+- `app/sinolpack.py` — budowa paczek
+- `frontend/` — portal (`/` → contest OIOIOI) + laboratorium API
 - `oioioi/` — oficjalny Docker OIOIOI (web :8001, Postgres, RabbitMQ, worker)

@@ -101,6 +101,22 @@ a.card:hover {
   background: #cfc6e0;
 }
 
+a.cta {
+  display: inline-block;
+  margin: 8px 0 4px;
+  padding: 12px 22px;
+  background: #4a3563;
+  color: #eeebf4;
+  font-weight: 650;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+a.cta:hover {
+  background: #6b5485;
+  color: #fff;
+}
+
 .card .label {
   font-size: 13px;
   color: #6b5485;
