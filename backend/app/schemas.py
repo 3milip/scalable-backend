@@ -1,3 +1,5 @@
+from typing import Literal
+
 from pydantic import BaseModel, Field
 
 
@@ -27,7 +29,7 @@ class ProblemListOut(BaseModel):
 
 class SubmissionIn(BaseModel):
     problem_id: int
-    language: str
+    language: Literal["cpp"]
     code: str = Field(min_length=1)
 
 

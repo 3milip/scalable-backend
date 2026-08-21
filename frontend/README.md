@@ -1,6 +1,6 @@
 # Frontend
 
-Statyczny HTML. Gada wyłącznie z backendem (`API_BASE` w `config.js`).
+Statyczny HTML. Gada wyłącznie z backendem (`API_BASE` w `config.js`). Zgłoszenia w **C++**.
 
 Port: **3000**.
 

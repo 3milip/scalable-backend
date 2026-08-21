@@ -10,6 +10,8 @@ from sqlalchemy.orm import Session, sessionmaker
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
+from pydantic import ValidationError
+
 from app.models import Base, Problem, Submission, Test
 from app.schemas import SubmissionIn
 
@@ -57,7 +59,7 @@ class SubmitTests(unittest.TestCase):
 
         with patch("app.main.post_job", return_value=None):
             out = create_submission(
-                SubmissionIn(problem_id=self.problem_id, language="python", code="print(1)"),
+                SubmissionIn(problem_id=self.problem_id, language="cpp", code="int main(){}"),
                 db=self.session,
             )
         self.assertEqual(out.status, "failed")
@@ -70,10 +72,14 @@ class SubmitTests(unittest.TestCase):
 
         with patch("app.main.post_job", return_value={"id": 7, "submission_id": 1, "status": "queued"}):
             out = create_submission(
-                SubmissionIn(problem_id=self.problem_id, language="python", code="print(1)"),
+                SubmissionIn(problem_id=self.problem_id, language="cpp", code="int main(){}"),
                 db=self.session,
             )
         self.assertEqual(out.status, "queued")
+
+    def test_rejects_non_cpp_language(self) -> None:
+        with self.assertRaises(ValidationError):
+            SubmissionIn(problem_id=self.problem_id, language="python", code="print(1)")
 
 
 if __name__ == "__main__":

@@ -33,7 +33,7 @@
         "hidden": true
       }
     ],
-    "solution": "a, b = map(int, input().split())\nprint(a + b)"
+    "solution": "#include <iostream>\nint main() {\n    int a, b;\n    std::cin >> a >> b;\n    std::cout << a + b << \"\\n\";\n}"
   },
   {
     "external_id": "local-02",
@@ -68,7 +68,7 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\nprint(\"TAK\" if n % 2 == 0 else \"NIE\")"
+    "solution": "#include <iostream>\nint main() {\n    int n;\n    std::cin >> n;\n    std::cout << (n % 2 == 0 ? \"TAK\" : \"NIE\") << \"\\n\";\n}"
   },
   {
     "external_id": "local-03",
@@ -104,7 +104,7 @@
         "hidden": true
       }
     ],
-    "solution": "print(max(map(int, input().split())))"
+    "solution": "#include <iostream>\n#include <algorithm>\nint main() {\n    int a, b, c;\n    std::cin >> a >> b >> c;\n    std::cout << std::max(a, std::max(b, c)) << \"\\n\";\n}"
   },
   {
     "external_id": "local-04",
@@ -145,7 +145,7 @@
         "hidden": true
       }
     ],
-    "solution": "w = int(input())\nprint(\"TAK\" if w >= 4 and w % 2 == 0 else \"NIE\")"
+    "solution": "#include <iostream>\nint main() {\n    int w;\n    std::cin >> w;\n    std::cout << (w >= 4 && w % 2 == 0 ? \"TAK\" : \"NIE\") << \"\\n\";\n}"
   },
   {
     "external_id": "local-05",
@@ -175,7 +175,7 @@
         "hidden": true
       }
     ],
-    "solution": "print(abs(int(input())))"
+    "solution": "#include <iostream>\n#include <cstdlib>\nint main() {\n    int n;\n    std::cin >> n;\n    std::cout << std::abs(n) << \"\\n\";\n}"
   },
   {
     "external_id": "local-06",
@@ -205,7 +205,7 @@
         "hidden": true
       }
     ],
-    "solution": "a, b = map(int, input().split())\nprint(a % b)"
+    "solution": "#include <iostream>\nint main() {\n    int a, b;\n    std::cin >> a >> b;\n    std::cout << a % b << \"\\n\";\n}"
   },
   {
     "external_id": "local-07",
@@ -235,7 +235,7 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\nprint(n * (n + 1) // 2)"
+    "solution": "#include <iostream>\nint main() {\n    long long n;\n    std::cin >> n;\n    std::cout << n * (n + 1) / 2 << \"\\n\";\n}"
   },
   {
     "external_id": "local-08",
@@ -270,7 +270,7 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\nwynik = 1\nfor i in range(1, n + 1):\n    wynik *= i\nprint(wynik)"
+    "solution": "#include <iostream>\nint main() {\n    int n;\n    std::cin >> n;\n    long long w = 1;\n    for (int i = 1; i <= n; i++) w *= i;\n    std::cout << w << \"\\n\";\n}"
   },
   {
     "external_id": "local-09",
@@ -300,7 +300,7 @@
         "hidden": true
       }
     ],
-    "solution": "print(input().strip()[::-1])"
+    "solution": "#include <iostream>\n#include <string>\n#include <algorithm>\nint main() {\n    std::string s;\n    std::cin >> s;\n    std::reverse(s.begin(), s.end());\n    std::cout << s << \"\\n\";\n}"
   },
   {
     "external_id": "local-10",
@@ -335,7 +335,7 @@
         "hidden": true
       }
     ],
-    "solution": "s = input().strip()\nprint(\"TAK\" if s == s[::-1] else \"NIE\")"
+    "solution": "#include <iostream>\n#include <string>\n#include <algorithm>\nint main() {\n    std::string s;\n    std::cin >> s;\n    std::string r = s;\n    std::reverse(r.begin(), r.end());\n    std::cout << (s == r ? \"TAK\" : \"NIE\") << \"\\n\";\n}"
   },
   {
     "external_id": "local-11",
@@ -365,7 +365,7 @@
         "hidden": true
       }
     ],
-    "solution": "print(len(input().strip()))"
+    "solution": "#include <iostream>\n#include <string>\nint main() {\n    std::string s;\n    std::cin >> s;\n    std::cout << s.size() << \"\\n\";\n}"
   },
   {
     "external_id": "local-12",
@@ -395,7 +395,7 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\nprint(min(map(int, input().split())))"
+    "solution": "#include <iostream>\n#include <algorithm>\nint main() {\n    int n, best;\n    std::cin >> n >> best;\n    for (int i = 1; i < n; i++) {\n        int x;\n        std::cin >> x;\n        best = std::min(best, x);\n    }\n    std::cout << best << \"\\n\";\n}"
   },
   {
     "external_id": "local-13",
@@ -425,7 +425,7 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\nprint(sum(1 for x in map(int, input().split()) if x > 0))"
+    "solution": "#include <iostream>\nint main() {\n    int n, c = 0;\n    std::cin >> n;\n    for (int i = 0; i < n; i++) {\n        int x;\n        std::cin >> x;\n        if (x > 0) c++;\n    }\n    std::cout << c << \"\\n\";\n}"
   },
   {
     "external_id": "local-14",
@@ -460,7 +460,7 @@
         "hidden": true
       }
     ],
-    "solution": "a, b = map(int, input().split())\nprint(a ** b)"
+    "solution": "#include <iostream>\nint main() {\n    long long a, b, w = 1;\n    std::cin >> a >> b;\n    for (int i = 0; i < b; i++) w *= a;\n    std::cout << w << \"\\n\";\n}"
   },
   {
     "external_id": "local-15",
@@ -496,7 +496,7 @@
         "hidden": true
       }
     ],
-    "solution": "a, b, c = map(int, input().split())\nprint(\"TAK\" if a + b > c and a + c > b and b + c > a else \"NIE\")"
+    "solution": "#include <iostream>\nint main() {\n    int a, b, c;\n    std::cin >> a >> b >> c;\n    std::cout << (a + b > c && a + c > b && b + c > a ? \"TAK\" : \"NIE\") << \"\\n\";\n}"
   },
   {
     "external_id": "local-16",
@@ -531,7 +531,7 @@
         "hidden": true
       }
     ],
-    "solution": "import math\na, b = map(int, input().split())\nprint(math.gcd(a, b))"
+    "solution": "#include <iostream>\n#include <numeric>\nint main() {\n    int a, b;\n    std::cin >> a >> b;\n    std::cout << std::gcd(a, b) << \"\\n\";\n}"
   },
   {
     "external_id": "local-17",
@@ -566,7 +566,7 @@
         "hidden": true
       }
     ],
-    "solution": "y = int(input())\nprint(\"TAK\" if y % 400 == 0 or (y % 4 == 0 and y % 100 != 0) else \"NIE\")"
+    "solution": "#include <iostream>\nint main() {\n    int y;\n    std::cin >> y;\n    std::cout << (y % 400 == 0 || (y % 4 == 0 && y % 100 != 0) ? \"TAK\" : \"NIE\") << \"\\n\";\n}"
   },
   {
     "external_id": "local-18",
@@ -601,7 +601,7 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\na = list(map(int, input().split()))\nprint(\"TAK\" if all(a[i] <= a[i + 1] for i in range(n - 1)) else \"NIE\")"
+    "solution": "#include <iostream>\n#include <vector>\nint main() {\n    int n;\n    std::cin >> n;\n    std::vector<int> a(n);\n    for (int i = 0; i < n; i++) std::cin >> a[i];\n    bool ok = true;\n    for (int i = 0; i + 1 < n; i++) if (a[i] > a[i + 1]) ok = false;\n    std::cout << (ok ? \"TAK\" : \"NIE\") << \"\\n\";\n}"
   },
   {
     "external_id": "local-19",
@@ -632,7 +632,7 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\nprint(sum(map(int, input().split())) // n)"
+    "solution": "#include <iostream>\nint main() {\n    int n, s = 0;\n    std::cin >> n;\n    for (int i = 0; i < n; i++) {\n        int x;\n        std::cin >> x;\n        s += x;\n    }\n    std::cout << s / n << \"\\n\";\n}"
   },
   {
     "external_id": "local-20",
@@ -672,6 +672,6 @@
         "hidden": true
       }
     ],
-    "solution": "n = int(input())\nif n % 15 == 0:\n    print(\"FizzBuzz\")\nelif n % 3 == 0:\n    print(\"Fizz\")\nelif n % 5 == 0:\n    print(\"Buzz\")\nelse:\n    print(n)"
+    "solution": "#include <iostream>\nint main() {\n    int n;\n    std::cin >> n;\n    if (n % 15 == 0) std::cout << \"FizzBuzz\\n\";\n    else if (n % 3 == 0) std::cout << \"Fizz\\n\";\n    else if (n % 5 == 0) std::cout << \"Buzz\\n\";\n    else std::cout << n << \"\\n\";\n}"
   }
 ]

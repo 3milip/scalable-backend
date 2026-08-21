@@ -8,9 +8,11 @@
 #   3. whitelist obrazow (ISOLATE_ALLOWED_IMAGES)
 #   4. szersza lista zabronionych mountow
 #   5. prefiks dozwolonych mountow (ISOLATE_SAFE_MOUNT_PREFIXES)
-#   6. logowanie exit 124 / 137 / 139
+#   6. logowanie exit 124 / 137 / 139 / 100
 #   7. chmod 700 na SLOT_DIR
 #   8. auto-parallel = min(N_cpu, N_ram)
+#   9. tmpfs /box z exec (binarka C++); /tmp zostaje noexec
+#  10. --compile: g++ w tym samym kontenerze, poza limitem -t
 # Poprawki po review:
 #   - mem_to_bytes w czystym bashu (bez gawk)
 #   - walidacja MAX_PARALLEL >= 1 (po auto / po fladze)
@@ -59,14 +61,18 @@ usage() {
 Uzycie:
   ./iso.sh [opcje] -- <program> [args...]
   ./iso.sh -- python3 /work/main.py < input.txt
+  ./iso.sh --compile 'g++ -O2 -std=c++17 -pipe -o /box/main /work/main.cpp' -- /box/main
 
 Opcje:
   -i, --image IMAGE          Obraz Docker (domyslnie: python:3.12-slim-bookworm)
   -m, --memory SIZE          Limit RAM (domyslnie: 256m)
   -c, --cpus N               Limit CPU (domyslnie: 0.5)
-  -t, --timeout SEC          Timeout joba w sekundach (domyslnie: 30; 0 = bez)
+  -t, --timeout SEC          Timeout programu w sekundach (domyslnie: 30; 0 = bez)
   -p, --pids N               Max procesow (domyslnie: 64)
   --mount HOST:CONT          Mount tylko-do-odczytu (mozna wielokrotnie)
+  --compile CMD              Komenda kompilacji (jeden argument). Poza limitem -t.
+                             Blad kompilacji = exit 100 (nie kod g++).
+  --compile-timeout SEC      Limit kompilacji w sekundach (domyslnie: 30)
   --allow-net                Wlacz siec (domyslnie: wylaczona)
   --max-parallel N           Max rownoleglych jobow na hoscie (0 = auto)
   --queue-wait SEC           Ile czekac na wolny slot (domyslnie: 120)
@@ -157,6 +163,8 @@ require_int_ge() {
 MOUNTS=()
 ALLOW_NET=0
 PROGRAM_ARGS=()
+COMPILE_CMD=""
+COMPILE_TIMEOUT_SEC=30
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -169,6 +177,8 @@ while [[ $# -gt 0 ]]; do
     --max-parallel) MAX_PARALLEL="${2:?}"; shift 2 ;;
     --queue-wait) QUEUE_WAIT_SEC="${2:?}"; shift 2 ;;
     --mount) MOUNTS+=("${2:?}"); shift 2 ;;
+    --compile) COMPILE_CMD="${2:?}"; shift 2 ;;
+    --compile-timeout) COMPILE_TIMEOUT_SEC="${2:?}"; shift 2 ;;
     --allow-net) ALLOW_NET=1; shift ;;
     --) shift; PROGRAM_ARGS=("$@"); break ;;
     -*)
@@ -206,6 +216,7 @@ require_int_ge "ISOLATE_MAX_PARALLEL/--max-parallel" "$MAX_PARALLEL" 0
 require_int_ge "ISOLATE_QUEUE_WAIT/--queue-wait" "$QUEUE_WAIT_SEC" 0
 require_int_ge "ISOLATE_PIDS/-p" "$PIDS_LIMIT" 1
 require_int_ge "ISOLATE_TIMEOUT/-t" "$TIMEOUT_SEC" 0
+require_int_ge "ISOLATE_COMPILE_TIMEOUT/--compile-timeout" "$COMPILE_TIMEOUT_SEC" 1
 
 if ! mem_to_bytes "$MEMORY" >/dev/null; then
   die "niepoprawny limit pamieci MEMORY/-m: $MEMORY (przyklady: 128m, 256m, 1g)"
@@ -428,10 +439,19 @@ if ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
   docker pull "$IMAGE" >&3 2>&3
 fi
 
-# Wrapper w kontenerze: stoper + peak RAM do /tmp/isolate-meta. Nic na stdout.
-# ISOLATE_INNER_TIMEOUT (env w kontenerze) wlacza timeout; puste = bez limitu.
+# Wrapper w kontenerze: opcjonalna kompilacja, potem stoper tylko na program.
+# ISOLATE_INNER_TIMEOUT — limit programu. ISOLATE_COMPILE — poza tym limitem.
+# Blad kompilacji: exit 100 (oddzielone od exit 1 programu).
 ISOLATE_WRAPPER='
 set +e
+if [ -n "${ISOLATE_COMPILE:-}" ]; then
+  timeout --kill-after=1s "${ISOLATE_COMPILE_TIMEOUT:-30s}" bash -c "$ISOLATE_COMPILE"
+  crc=$?
+  if [ "$crc" -ne 0 ]; then
+    echo "[isolate-meta] rc=100 time_ms=0 memory_bytes=0 compile=failed" >&2
+    exit 100
+  fi
+fi
 start_ns=$(date +%s%N 2>/dev/null || true)
 if [ -n "${ISOLATE_INNER_TIMEOUT:-}" ]; then
   timeout --kill-after=1s "$ISOLATE_INNER_TIMEOUT" "$@"
@@ -464,10 +484,23 @@ exit "$rc"
 INNER_CMD=(bash -c "$ISOLATE_WRAPPER" -- "${PROGRAM_ARGS[@]}")
 ENV_FLAGS=()
 TIMEOUT_PREFIX=()
+host_limit=0
 if [[ "$TIMEOUT_SEC" != "0" ]]; then
-  ENV_FLAGS=(-e "ISOLATE_INNER_TIMEOUT=${TIMEOUT_SEC}s")
+  ENV_FLAGS+=(-e "ISOLATE_INNER_TIMEOUT=${TIMEOUT_SEC}s")
+  host_limit=$((TIMEOUT_SEC + 10))
+fi
+if [[ -n "$COMPILE_CMD" ]]; then
+  ENV_FLAGS+=(-e "ISOLATE_COMPILE=${COMPILE_CMD}")
+  ENV_FLAGS+=(-e "ISOLATE_COMPILE_TIMEOUT=${COMPILE_TIMEOUT_SEC}s")
+  if [[ "$host_limit" -eq 0 ]]; then
+    host_limit=$((COMPILE_TIMEOUT_SEC + 10))
+  else
+    host_limit=$((host_limit + COMPILE_TIMEOUT_SEC))
+  fi
+fi
+if [[ "$host_limit" -gt 0 ]]; then
   if command -v timeout >/dev/null 2>&1; then
-    TIMEOUT_PREFIX=(timeout --kill-after=5s "$((TIMEOUT_SEC + 10))s")
+    TIMEOUT_PREFIX=(timeout --kill-after=5s "${host_limit}s")
   else
     log "UWAGA: brak hostowego 'timeout' - zostaje tylko limit w kontenerze."
   fi
@@ -490,6 +523,7 @@ set +e
   --entrypoint "" \
   --read-only \
   "${WORK_TMPFS[@]+"${WORK_TMPFS[@]}"}" \
+  --tmpfs /box:rw,exec,nosuid,nodev,size=64m \
   --tmpfs /tmp:rw,noexec,nosuid,nodev,size=64m \
   --tmpfs /var/tmp:rw,noexec,nosuid,nodev,size=16m \
   --tmpfs /run:rw,noexec,nosuid,nodev,size=8m \
@@ -527,6 +561,11 @@ set -e
 if [[ "$oom" == "true" ]]; then
   log "OOMKilled=true - przekroczony limit RAM (${MEMORY})"
   exit 137
+fi
+
+if [[ $rc -eq 100 ]]; then
+  log "compile failed (exit 100)"
+  exit 100
 fi
 
 if [[ $rc -eq 124 ]]; then

@@ -15,14 +15,14 @@ def _ok() -> RunResult:
 
 
 def _ce() -> RunResult:
-    return RunResult("CE", "", "SyntaxError: bad", 5, 800)
+    return RunResult("CE", "", "błąd kompilacji", 5, 800)
 
 
-def _payload() -> JobPayload:
-    return JobPayload(
+def _payload(**overrides) -> JobPayload:
+    data = dict(
         submission_id=9,
-        language="python",
-        code="print(1)",
+        language="cpp",
+        code="int main() { return 0; }",
         time_limit_ms=1000,
         memory_limit_mb=64,
         tests=[
@@ -31,6 +31,8 @@ def _payload() -> JobPayload:
             JobTest(id=3, input="2 2\n", output="4\n", position=2, group="1", max_score=1),
         ],
     )
+    data.update(overrides)
+    return JobPayload(**data)
 
 
 class JudgeRecipeTests(unittest.TestCase):
@@ -49,8 +51,6 @@ class JudgeRecipeTests(unittest.TestCase):
 
         def fake_run(_folder, stdin, *_args, **_kwargs):
             calls["n"] += 1
-            if calls["n"] == 1:
-                return _ok()
             if stdin == "0 0\n":
                 return RunResult("OK", "9\n", "", 10, 1000)
             return _ok()
@@ -62,9 +62,17 @@ class JudgeRecipeTests(unittest.TestCase):
         self.assertEqual(len(outcome.tests), 3)
         self.assertEqual(outcome.verdict, "WA")
         self.assertEqual(outcome.score, 0)
-        self.assertEqual(calls["n"], 4)
+        self.assertEqual(calls["n"], 3)
         self.assertEqual(outcome.tests[1].test_id, 2)
         self.assertEqual(outcome.tests[1].verdict, "WA")
+
+    def test_rejects_python_without_isolate(self) -> None:
+        with patch("sprawdzarka.judge.run_in") as mocked:
+            with patch("sprawdzarka.judge.heartbeat"):
+                outcome = judge(_payload(language="python", code="print(1)"), job_id=1)
+        self.assertEqual(outcome.verdict, "CE")
+        self.assertIn("C++", outcome.message or "")
+        mocked.assert_not_called()
 
 
 if __name__ == "__main__":

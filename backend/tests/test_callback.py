@@ -44,8 +44,8 @@ class CallbackTests(unittest.TestCase):
         self.session.add(test)
         sub = Submission(
             problem_id=problem.id,
-            language="python",
-            code="print(1)",
+            language="cpp",
+            code="int main(){}",
             status="queued",
             max_score=0,
         )

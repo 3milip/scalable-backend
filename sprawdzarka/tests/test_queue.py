@@ -23,8 +23,8 @@ def _engine(path: Path):
 def _payload(submission_id: int) -> dict:
     return {
         "submission_id": submission_id,
-        "language": "python",
-        "code": "print(1)",
+        "language": "cpp",
+        "code": "int main(){}",
         "time_limit_ms": 1000,
         "memory_limit_mb": 64,
         "checker": "exact",
@@ -157,7 +157,7 @@ class QueueTests(unittest.TestCase):
         job = claim("w1", path=self.path)
         self.assertIsNotNone(job)
         self.assertEqual(job.payload["submission_id"], self.submission_id)
-        self.assertEqual(job.payload["code"], "print(1)")
+        self.assertEqual(job.payload["code"], "int main(){}")
         with Session(self.engine) as session:
             row = session.get(Job, job.id)
             self.assertIsNotNone(row)

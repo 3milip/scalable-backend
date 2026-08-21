@@ -1,6 +1,6 @@
 # Sprawdzarka
 
-Kolejka jobów, izolacja w Dockerze, sędzia. Własna baza SQLite. Gada z backendem po HTTP.
+Kolejka jobów, izolacja w Dockerze, sędzia C++ (`g++` w obrazie `gcc:13-bookworm`). Własna baza SQLite. Gada z backendem po HTTP.
 
 Port: **8002**.
 

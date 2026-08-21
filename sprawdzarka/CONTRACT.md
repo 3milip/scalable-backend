@@ -24,15 +24,15 @@ Z kluczem.
 
 ## POST /jobs
 
-Z kluczem. Pełny pakiet do sędziego. Ten sam `submission_id` przy otwartym jobie (queued/leased) → ten sam job, bez duplikatu.
+Z kluczem. Pełny pakiet do sędziego. Ten sam `submission_id` przy otwartym jobie (queued/leased) → ten sam job, bez duplikatu. `language` tylko `"cpp"` (inny → CE w sędzi, bez izolacji).
 
 Wejście:
 
 ```json
 {
   "submission_id": 42,
-  "language": "python",
-  "code": "print(1)",
+  "language": "cpp",
+  "code": "#include <iostream>\nint main() { int a, b; std::cin >> a >> b; std::cout << a + b << \"\\n\"; }\n",
   "time_limit_ms": 1000,
   "memory_limit_mb": 256,
   "checker": "exact",

@@ -36,8 +36,10 @@ Treść zadania. 404 gdy brak.
 ## POST /submissions
 
 ```json
-{ "problem_id": 1, "language": "python", "code": "print(1)" }
+{ "problem_id": 1, "language": "cpp", "code": "#include <iostream>\nint main() { int a, b; std::cin >> a >> b; std::cout << a + b << \"\\n\"; }\n" }
 ```
+
+`language` tylko `"cpp"`. Inna wartość → 422.
 
 Zapisuje zgłoszenie i pcha job na sprawdzarkę (`POST {SPRAWDZARKA_URL}/jobs` z `X-Service-Key`). Jeśli POST nie przejdzie — status `failed`, wiadomość `sprawdzarka nieosiągalna`.
 

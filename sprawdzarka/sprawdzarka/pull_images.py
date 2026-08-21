@@ -7,6 +7,7 @@ import subprocess
 import sys
 
 DEFAULT_IMAGE = "python:3.12-slim-bookworm"
+DEFAULT_CPP_IMAGE = "gcc:13-bookworm"
 
 
 def docker_prefix() -> list[str]:
@@ -19,6 +20,7 @@ def needed_images() -> list[str]:
     images: list[str] = []
     for raw in (
         os.environ.get("ISOLATE_IMAGE", DEFAULT_IMAGE),
+        os.environ.get("ISOLATE_CPP_IMAGE", DEFAULT_CPP_IMAGE),
         *os.environ.get("ISOLATE_ALLOWED_IMAGES", "").split(),
     ):
         name = raw.strip()

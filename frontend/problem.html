@@ -35,13 +35,19 @@
           <label>
             Język
             <select id="language">
-              <option value="python">python</option>
+              <option value="cpp">C++</option>
             </select>
           </label>
         </p>
         <p>
           <textarea id="code" rows="10" cols="60" required>
-print(1)</textarea>
+#include &lt;iostream&gt;
+int main() {
+    int a, b;
+    std::cin &gt;&gt; a &gt;&gt; b;
+    std::cout &lt;&lt; a + b &lt;&lt; "\n";
+}
+</textarea>
         </p>
         <p>
           <button type="submit">Wyślij</button>

@@ -8,13 +8,13 @@ Trzy osobne aplikacje, które gadają ze sobą po HTTP. Nie współdzielą bazy 
 | [backend](backend/README.md) | :8000 | `cd backend; uvicorn app.main:app --port 8000` |
 | [sprawdzarka](sprawdzarka/README.md) | :8002 | API: `cd sprawdzarka; uvicorn sprawdzarka.main:app --port 8002` · worker: `python -m sprawdzarka.worker` |
 
-Przeglądarka → frontend → backend → sprawdzarka (Docker). Wynik wraca callbackiem na backend.
+Przeglądarka → frontend → backend → sprawdzarka (Docker). Wynik wraca callbackiem na backend. Język zgłoszeń: **C++** (`language: "cpp"`).
 
 Kontrakty: [backend/CONTRACT.md](backend/CONTRACT.md), [sprawdzarka/CONTRACT.md](sprawdzarka/CONTRACT.md).
 
 ## Setup (raz)
 
-Wymagane: Python 3.12+, Docker Desktop (WSL 2) dla workera.
+Wymagane: Python 3.12+, Docker Desktop (WSL 2) dla workera (obrazy `python:3.12-slim-bookworm` i `gcc:13-bookworm`).
 
 ```powershell
 python -m venv .venv

@@ -1,6 +1,6 @@
 # Backend
 
-Publiczne API zadań i zgłoszeń. Własna baza SQLite. Sędziego nie ma tutaj — job idzie HTTP do sprawdzarki.
+Publiczne API zadań i zgłoszeń. Własna baza SQLite. Sędziego nie ma tutaj — job idzie HTTP do sprawdzarki. Język zgłoszeń: **C++** (`cpp`).
 
 Port: **8000**.
 

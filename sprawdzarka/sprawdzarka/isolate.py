@@ -7,8 +7,12 @@ from pathlib import Path
 PACKAGE_DIR = Path(__file__).resolve().parent
 ISO_SH = PACKAGE_DIR / "iso.sh"
 ISOLATE_IMAGE = os.environ.get("ISOLATE_IMAGE", "python:3.12-slim-bookworm")
+CPP_IMAGE = os.environ.get("ISOLATE_CPP_IMAGE", "gcc:13-bookworm")
 QUEUE_WAIT_SEC = int(os.environ.get("ISOLATE_QUEUE_WAIT", "120"))
+COMPILE_TIMEOUT_SEC = int(os.environ.get("ISOLATE_COMPILE_TIMEOUT", "30"))
 SLOT_RETRIES = 3
+CPP_COMPILE = "g++ -O2 -std=c++17 -pipe -o /box/main /work/main.cpp"
+CPP_RUN = ["/box/main"]
 
 
 @dataclass
@@ -24,14 +28,16 @@ def timeout_sec(time_limit_ms: int) -> int:
     return max(1, (time_limit_ms + 999) // 1000)
 
 
-def isolate_env() -> dict[str, str]:
+def isolate_env(image: str | None = None) -> dict[str, str]:
+    used = image or ISOLATE_IMAGE
     allowed = os.environ.get("ISOLATE_ALLOWED_IMAGES", ISOLATE_IMAGE)
-    tokens = allowed.split()
-    if ISOLATE_IMAGE not in tokens:
-        allowed = f"{allowed} {ISOLATE_IMAGE}".strip()
+    tokens = [tok for tok in allowed.split() if tok]
+    for name in (ISOLATE_IMAGE, used):
+        if name not in tokens:
+            tokens.append(name)
     return {
-        "ISOLATE_IMAGE": ISOLATE_IMAGE,
-        "ISOLATE_ALLOWED_IMAGES": allowed,
+        "ISOLATE_IMAGE": used,
+        "ISOLATE_ALLOWED_IMAGES": " ".join(tokens),
         "ISOLATE_QUEUE_WAIT": str(QUEUE_WAIT_SEC),
     }
 
@@ -56,15 +62,18 @@ def isolate_command(
     memory_mb: int,
     program: list[str],
     extra_mounts: list[tuple[Path, str]] | None = None,
+    compile_cmd: str | None = None,
+    image: str | None = None,
 ) -> tuple[list[str], dict[str, str] | None]:
     if not ISO_SH.is_file():
         raise FileNotFoundError(f"brak {ISO_SH}")
-    extra = isolate_env()
+    used_image = image or ISOLATE_IMAGE
+    extra = isolate_env(used_image)
     args = [
         "bash",
         to_isolate_path(ISO_SH),
         "-i",
-        ISOLATE_IMAGE,
+        used_image,
         "-m",
         f"{max(1, memory_mb)}m",
         "-t",
@@ -72,6 +81,8 @@ def isolate_command(
         "--mount",
         f"{to_isolate_path(folder)}:/work",
     ]
+    if compile_cmd:
+        args.extend(["--compile", compile_cmd, "--compile-timeout", str(COMPILE_TIMEOUT_SEC)])
     for host, dest in extra_mounts or []:
         args.extend(["--mount", f"{to_isolate_path(host)}:{dest}"])
     args.extend(["--", *program])
@@ -133,9 +144,9 @@ def pick_memory_kb(meta: dict[str, str], memory_mb: int, *, oom: bool) -> int | 
     return None
 
 
-def prepare_work(code: str) -> tempfile.TemporaryDirectory:
+def prepare_work(code: str, filename: str = "main.py") -> tempfile.TemporaryDirectory:
     folder = tempfile.TemporaryDirectory()
-    path = Path(folder.name) / "main.py"
+    path = Path(folder.name) / filename
     path.write_text(code, encoding="utf-8")
     path.chmod(0o644)
     Path(folder.name).chmod(0o755)
@@ -160,11 +171,21 @@ def run_raw(
     memory_mb: int,
     program: list[str],
     extra_mounts: list[tuple[Path, str]] | None = None,
+    compile_cmd: str | None = None,
+    image: str | None = None,
 ) -> RawRun:
     cmd, env = isolate_command(
-        folder, time_limit_ms, memory_mb, program, extra_mounts=extra_mounts
+        folder,
+        time_limit_ms,
+        memory_mb,
+        program,
+        extra_mounts=extra_mounts,
+        compile_cmd=compile_cmd,
+        image=image,
     )
     wait_sec = QUEUE_WAIT_SEC + timeout_sec(time_limit_ms) + 30
+    if compile_cmd:
+        wait_sec += COMPILE_TIMEOUT_SEC
     result = None
     try:
         for _attempt in range(SLOT_RETRIES):
@@ -213,12 +234,25 @@ def run_in(
     memory_mb: int,
     program: list[str],
     extra_mounts: list[tuple[Path, str]] | None = None,
+    compile_cmd: str | None = None,
+    image: str | None = None,
 ) -> RunResult:
-    raw = run_raw(folder, stdin, time_limit_ms, memory_mb, program, extra_mounts=extra_mounts)
+    raw = run_raw(
+        folder,
+        stdin,
+        time_limit_ms,
+        memory_mb,
+        program,
+        extra_mounts=extra_mounts,
+        compile_cmd=compile_cmd,
+        image=image,
+    )
     if raw.isolate_error and raw.returncode < 0:
         return RunResult("RE", "", raw.isolate_error, raw.time_ms, raw.memory_kb)
     if raw.returncode == 75:
         return RunResult("RE", raw.stdout, raw.isolate_error or "brak wolnego slotu", raw.time_ms, raw.memory_kb)
+    if raw.returncode == 100:
+        return RunResult("CE", raw.stdout, raw.stderr or "błąd kompilacji", raw.time_ms, raw.memory_kb)
     if raw.returncode == 124:
         return RunResult("TLE", raw.stdout, raw.stderr or "Przekroczony limit czasu", raw.time_ms, raw.memory_kb)
     if raw.oom or raw.returncode == 137:

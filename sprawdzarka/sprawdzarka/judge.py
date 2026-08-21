@@ -4,7 +4,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from sprawdzarka.checker import check
-from sprawdzarka.isolate import COMPILE_PROGRAM, RUN_PROGRAM, RunResult, prepare_work, run_in
+from sprawdzarka.isolate import CPP_COMPILE, CPP_IMAGE, CPP_RUN, RunResult, prepare_work, run_in
 from sprawdzarka.queue import heartbeat
 from sprawdzarka.scoring import problem_max_score, score_groups, test_points, worst_verdict
 
@@ -145,48 +145,20 @@ def _apply_output(payload: JobPayload, test: JobTest, result: RunResult) -> tupl
 def judge(payload: JobPayload, job_id: int) -> JudgeOutcome:
     max_score = problem_max_score(payload.tests)
 
-    if payload.language != "python":
-        return _done(payload, verdict="CE", message="Na razie tylko python", score=0)
+    if payload.language != "cpp":
+        return _done(payload, verdict="CE", message="Na razie tylko C++", score=0)
 
     if not payload.tests:
         return _done(payload, verdict="RE", message="Brak testów do tego zadania", score=0)
 
-    work = prepare_work(payload.code)
+    work = prepare_work(payload.code, filename="main.cpp")
     folder = Path(work.name)
     try:
-        heartbeat(job_id)
-        compiled = run_in(
-            folder,
-            "",
-            payload.time_limit_ms,
-            payload.memory_limit_mb,
-            COMPILE_PROGRAM,
-        )
-        if compiled.verdict != "OK":
-            if compiled.verdict == "RE" and (
-                compiled.message.startswith("brak izolacji")
-                or "izolacja nie odpowiedziała" in compiled.message
-            ):
-                return _done(
-                    payload,
-                    verdict="RE",
-                    message=compiled.message,
-                    time_ms=compiled.time_ms,
-                    memory_kb=compiled.memory_kb,
-                )
-            return _done(
-                payload,
-                verdict="CE",
-                message=compiled.message or "błąd kompilacji",
-                time_ms=compiled.time_ms,
-                memory_kb=compiled.memory_kb,
-            )
-
         scored_rows: list[tuple[str, str, int]] = []
         verdicts: list[str] = []
         outcomes: list[TestOutcome] = []
-        total_ms = compiled.time_ms or 0
-        peak_kb = compiled.memory_kb
+        total_ms = 0
+        peak_kb: int | None = None
         overall_message: str | None = None
 
         for test in payload.tests:
@@ -196,8 +168,29 @@ def judge(payload: JobPayload, job_id: int) -> JudgeOutcome:
                 test.input,
                 payload.time_limit_ms,
                 payload.memory_limit_mb,
-                RUN_PROGRAM,
+                CPP_RUN,
+                compile_cmd=CPP_COMPILE,
+                image=CPP_IMAGE,
             )
+            if ran.verdict == "CE":
+                return _done(
+                    payload,
+                    verdict="CE",
+                    message=ran.message or "błąd kompilacji",
+                    time_ms=ran.time_ms,
+                    memory_kb=ran.memory_kb,
+                )
+            if ran.verdict == "RE" and (
+                (ran.message or "").startswith("brak izolacji")
+                or "izolacja nie odpowiedziała" in (ran.message or "")
+            ):
+                return _done(
+                    payload,
+                    verdict="RE",
+                    message=ran.message,
+                    time_ms=ran.time_ms,
+                    memory_kb=ran.memory_kb,
+                )
             verdict, message = _apply_output(payload, test, ran)
             if ran.time_ms is not None:
                 total_ms += ran.time_ms
