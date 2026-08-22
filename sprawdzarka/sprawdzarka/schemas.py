@@ -26,6 +26,7 @@ class JobIn(BaseModel):
     memory_limit_mb: int
     checker: str = "exact"
     checker_code: str = ""
+    short_name: str = ""
     tests: list[JobTestIn] = []
 
 

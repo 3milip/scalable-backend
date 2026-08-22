@@ -147,6 +147,7 @@ def create_submission(payload: SubmissionIn, db: Session = Depends(get_db)):
             "memory_limit_mb": problem.memory_limit_mb,
             "checker": problem.checker or "exact",
             "checker_code": problem.checker_code or "",
+            "short_name": problem.external_id,
             "tests": [
                 {
                     "id": test.id,

@@ -70,12 +70,15 @@ class SubmitTests(unittest.TestCase):
     def test_successful_post_stays_queued(self) -> None:
         from app.main import create_submission
 
-        with patch("app.main.post_job", return_value={"id": 7, "submission_id": 1, "status": "queued"}):
+        with patch("app.main.post_job", return_value={"id": 7, "submission_id": 1, "status": "queued"}) as mocked:
             out = create_submission(
                 SubmissionIn(problem_id=self.problem_id, language="cpp", code="int main(){}"),
                 db=self.session,
             )
         self.assertEqual(out.status, "queued")
+        job = mocked.call_args[0][0]
+        self.assertEqual(job["short_name"], "s1")
+        self.assertEqual(job["language"], "cpp")
 
     def test_rejects_non_cpp_language(self) -> None:
         with self.assertRaises(ValidationError):

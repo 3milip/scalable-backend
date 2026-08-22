@@ -28,6 +28,7 @@ services:
     command: ["/sio2/oioioi/oioioi_init.sh"]
     environment:
       OIOIOI_DB_ENGINE: "django.db.backends.postgresql"
+      OIOIOI_SERVER_MODE: "uwsgi-http"
       RABBITMQ_HOST: "broker"
       RABBITMQ_PORT: "5672"
       RABBITMQ_USER: "oioioi"
@@ -55,6 +56,7 @@ services:
       - ALL
     depends_on:
       - db
+      - broker
 
   broker:
     image: library/rabbitmq:3.8

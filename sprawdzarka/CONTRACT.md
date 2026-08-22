@@ -24,7 +24,7 @@ Z kluczem.
 
 ## POST /jobs
 
-Z kluczem. Pełny pakiet do sędziego. Ten sam `submission_id` przy otwartym jobie (queued/leased) → ten sam job, bez duplikatu. `language` tylko `"cpp"` (inny → CE w sędzi, bez izolacji).
+Z kluczem. Worker pcha kod do OIOIOI (`short_name` + `main.cpp`). Ten sam `submission_id` przy otwartym jobie (queued/leased) → ten sam job, bez duplikatu. `language` tylko `"cpp"`.
 
 Wejście:
 
@@ -37,6 +37,7 @@ Wejście:
   "memory_limit_mb": 256,
   "checker": "exact",
   "checker_code": "",
+  "short_name": "sum",
   "tests": [
     {
       "id": 1,
@@ -50,7 +51,9 @@ Wejście:
 }
 ```
 
-`id` w teście to `test.id` z backendu — wraca jako `test_id` w callbacku. Ukryte testy są w tablicy (pełne I/O). Pola `hidden` nie ma.
+`short_name` = id zadania w contestcie OIOIOI (u nas `Problem.external_id`). Worker ignoruje `tests` — ocenia paczka SIO2. Callback v1: `tests: []`.
+
+`id` w teście to `test.id` z backendu — wraca jako `test_id` w callbacku, gdy sędzia lokalny kiedyś zwracał wiersze. Pola `hidden` nie ma.
 
 Odpowiedź `201`:
 

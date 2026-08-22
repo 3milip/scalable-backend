@@ -1,6 +1,6 @@
 [
   {
-    "external_id": "local-01",
+    "external_id": "sum",
     "title": "Suma dwóch liczb",
     "statement": "Wczytaj dwie liczby całkowite a i b (w jednej linii, oddzielone spacją).\nWypisz ich sumę.\n\nPrzykład:\nWejście:\n1 2\nWyjście:\n3",
     "difficulty": 800,

@@ -192,6 +192,38 @@ def claim(worker_id: str, path: Path | None = None) -> Job | None:
         conn.close()
 
 
+def oioioi_id_from_payload(payload: dict) -> int | None:
+    raw = payload.get("oioioi_submission_id")
+    if raw is None or raw == "":
+        return None
+    return int(raw)
+
+
+def merge_payload(job_id: int, updates: dict, path: Path | None = None) -> dict:
+    """Dopisz pola do JSON payload od razu (id OIOIOI po 200, przed pollem)."""
+    db_file = path or sqlite_path()
+    conn = _connect(db_file)
+    try:
+        conn.execute("BEGIN IMMEDIATE")
+        row = conn.execute("SELECT payload FROM jobs WHERE id = ?", (job_id,)).fetchone()
+        if row is None:
+            conn.execute("COMMIT")
+            raise KeyError(f"brak joba {job_id}")
+        data = _payload_dict(row[0])
+        data.update(updates)
+        conn.execute(
+            "UPDATE jobs SET payload = ? WHERE id = ?",
+            (json.dumps(data), job_id),
+        )
+        conn.execute("COMMIT")
+        return data
+    except Exception:
+        conn.execute("ROLLBACK")
+        raise
+    finally:
+        conn.close()
+
+
 def heartbeat(job_id: int, path: Path | None = None) -> None:
     db_file = path or sqlite_path()
     conn = _connect(db_file)

@@ -45,7 +45,7 @@
       </div>
       <p id="message"></p>
       <h3>Testy</h3>
-      <p id="tests-empty" class="muted">Jeszcze brak wyników (kolejka albo compile).</p>
+      <p id="tests-empty" class="muted">Jeszcze brak wyników (kolejka albo ocena w OIOIOI).</p>
       <table id="tests-table" hidden>
         <thead>
           <tr>
@@ -82,7 +82,7 @@
         return td;
       }
 
-      function renderTests(tests) {
+      function renderTests(tests, status) {
         const empty = document.getElementById("tests-empty");
         const table = document.getElementById("tests-table");
         const body = document.getElementById("tests-rows");
@@ -90,6 +90,14 @@
         if (!tests.length) {
           empty.hidden = false;
           table.hidden = true;
+          if (status === "done") {
+            empty.textContent =
+              "Szczegóły per test są w OIOIOI — oficjalne API zwraca tylko sumę i status.";
+          } else if (status === "failed") {
+            empty.textContent = "Brak tabeli testów (adapter nie dostał wyniku z OIOIOI).";
+          } else {
+            empty.textContent = "Jeszcze brak wyników (kolejka albo ocena w OIOIOI).";
+          }
           return;
         }
         empty.hidden = true;
@@ -148,7 +156,7 @@
           document.getElementById("code").textContent = sub.code ?? "";
           document.getElementById("status").textContent =
             "Zadanie #" + sub.problem_id + " · " + sub.language;
-          renderTests(sub.tests || []);
+          renderTests(sub.tests || [], sub.status);
         } catch (error) {
           document.getElementById("status").textContent =
             "Nie mogę połączyć. Odpal backend na porcie 8000.";

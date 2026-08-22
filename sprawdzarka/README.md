@@ -10,14 +10,17 @@ Z katalogu `sprawdzarka/`:
 
 ```powershell
 pip install -r requirements.txt
-python -m sprawdzarka.pull_images
 ```
+
+Worker sędziuje przez OIOIOI (`OIOIOI_*` w `.env`). `pull_images` / `iso.sh` zostają pod testy jednostkowe sędziego, nie na żywej ścieżce.
 
 Env (domyślne wystarczą lokalnie):
 
 - `BACKEND_URL` = `http://127.0.0.1:8000`
 - `SERVICE_KEY` = `dev-service-key`
 - `DATABASE_URL` = `sqlite:///./data/jobs.db`
+
+Token OIOIOI (adapter, nie superuser): skopiuj `.env.example` → `.env`. Klient: `OioioiClient.from_env()`. Pętla submit-once/poll: `run_oioioi_job` (id w JSON payload). Worker **jeszcze** sędziuje lokalnie (`iso.sh`).
 
 ## Uruchomienie
 

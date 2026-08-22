@@ -1,14 +1,14 @@
 import os
 import signal
 import socket
-import subprocess
 import sys
 import threading
 import uuid
-from pathlib import Path
 
 from sprawdzarka.callback import post_results
-from sprawdzarka.judge import JobPayload, judge
+from sprawdzarka.oioioi_client import OioioiClient, OioioiConfigError
+from sprawdzarka.oioioi_job import run_oioioi_job
+from sprawdzarka.oioioi_map import to_callback
 from sprawdzarka.queue import (
     HEARTBEAT_EVERY,
     ack,
@@ -21,8 +21,6 @@ from sprawdzarka.queue import (
     touch_worker,
 )
 
-PACKAGE_DIR = Path(__file__).resolve().parent
-
 
 def _new_worker_id() -> str:
     return f"{socket.gethostname()}-{os.getpid()}-{uuid.uuid4().hex[:8]}"
@@ -30,12 +28,12 @@ def _new_worker_id() -> str:
 
 def main() -> None:
     ensure_db()
-    pull_script = PACKAGE_DIR / "pull_images.py"
-    print("Sprawdzam obrazy Dockera...")
-    pulled = subprocess.run([sys.executable, str(pull_script)])
-    if pulled.returncode != 0:
-        print("Nie mogę przygotować obrazów. Odpal: python -m sprawdzarka.pull_images")
-        raise SystemExit(pulled.returncode)
+    try:
+        client = OioioiClient.from_env()
+    except OioioiConfigError as error:
+        print(f"Brak konfiguracji OIOIOI: {error}")
+        print("Ustaw OIOIOI_URL, OIOIOI_TOKEN, OIOIOI_CONTEST_ID (sprawdzarka/.env).")
+        raise SystemExit(1) from error
 
     worker_id = _new_worker_id()
     touch_worker(worker_id)
@@ -91,15 +89,18 @@ def main() -> None:
                     {"submission_id": job.submission_id, "status": "running"},
                     retries=1,
                 )
-                payload = JobPayload.from_dict(job.payload)
-                outcome = judge(payload, job.id)
-                sent = post_results(outcome.to_callback(), retries=3)
+                outcome = run_oioioi_job(job, client)
+                body = to_callback(job.submission_id, outcome)
+                sent = post_results(body, retries=3)
                 if not sent:
                     nack(job.id)
                     print("  -> callback wyniku nie przeszedł, job wraca do kolejki")
                     continue
                 ack(job.id)
-                print(f"  -> {outcome.verdict} {outcome.score}/{outcome.max_score}")
+                print(
+                    f"  -> {body.get('status')} {body.get('verdict')} "
+                    f"{body.get('score')}/{body.get('max_score')} {body.get('message') or ''}"
+                )
             except KeyboardInterrupt:
                 stop.set()
                 nack(job.id)
