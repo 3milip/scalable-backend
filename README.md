@@ -45,6 +45,8 @@ docker compose restart web
 docker compose exec web python manage.py createsuperuser
 ```
 
+`restart web` ładuje apkę `adapter_report` (czas/RAM na kartach). Przy zmianie volume: `docker compose up` od nowa w katalogu `oioioi/`.
+
 UI: http://127.0.0.1:8001/ — załóż contest `demo`, wgraj zip z `oioioi/packages/sum/` (musi mieć katalogi `in/` i `out/`). Konto **zwykłe** (np. `adapter`, nie superuser), potem token:
 
 ```powershell

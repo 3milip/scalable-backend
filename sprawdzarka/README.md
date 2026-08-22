@@ -20,7 +20,7 @@ Env (domyślne wystarczą lokalnie):
 - `SERVICE_KEY` = `dev-service-key`
 - `DATABASE_URL` = `sqlite:///./data/jobs.db`
 
-Token OIOIOI (adapter, nie superuser): skopiuj `.env.example` → `.env`. Klient: `OioioiClient.from_env()`. Pętla submit-once/poll: `run_oioioi_job` (id w JSON payload). Worker **jeszcze** sędziuje lokalnie (`iso.sh`).
+Token OIOIOI (adapter, nie superuser): skopiuj `.env.example` → `.env`. Klient: `OioioiClient.from_env()`. Pętla: submit-once → poll listy (`QUE` / przykłady) → karty z `GET .../submission_report/{id}/` gdy `complete` (raport NORMAL). Worker wymaga działającego OIOIOI na `:8001`.
 
 ## Uruchomienie
 

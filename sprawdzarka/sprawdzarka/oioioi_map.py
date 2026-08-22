@@ -1,4 +1,4 @@
-"""Mapowanie statusu OIOIOI → nasz callback. Lista API nie daje per-test ani max_score."""
+"""Mapowanie statusu OIOIOI → nasz callback. Per-test nadal puste; czas/RAM z submission_report."""
 
 from __future__ import annotations
 
@@ -36,14 +36,15 @@ def to_callback(submission_id: int, result: OioioiJobResult) -> dict:
             "message": result.message,
         }
     score = 0 if result.score is None else result.score
+    max_score = OIOIOI_MAX_SCORE if result.max_score is None else result.max_score
     return {
         "submission_id": submission_id,
         "status": "done",
         "verdict": map_verdict(result.status),
         "score": score,
-        "max_score": OIOIOI_MAX_SCORE,
-        "time_ms": None,
-        "memory_kb": None,
+        "max_score": max_score,
+        "time_ms": result.time_ms,
+        "memory_kb": result.memory_kb,
         "tests": [],
         "message": result.message,
     }

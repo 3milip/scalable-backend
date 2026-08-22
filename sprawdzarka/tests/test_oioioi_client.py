@@ -14,8 +14,11 @@ from sprawdzarka.oioioi_client import (
     OioioiHttpError,
     OioioiSubmitUncertain,
     is_terminal,
+    list_early_fail,
+    list_still_running,
     parse_score,
     parse_submit_id,
+    report_is_complete,
 )
 
 
@@ -56,18 +59,20 @@ class ParseTests(unittest.TestCase):
         self.assertIsNone(parse_score(None))
         self.assertIsNone(parse_score(""))
 
-    def test_ini_ok_without_score_is_running(self) -> None:
-        self.assertFalse(is_terminal("INI_OK", None))
-        self.assertFalse(is_terminal("?", None))
-        self.assertFalse(is_terminal("QUE", None))
-
-    def test_ini_ok_with_score_is_done(self) -> None:
-        self.assertTrue(is_terminal("INI_OK", 100))
-        self.assertTrue(is_terminal("INI_OK", 0))
+    def test_ini_ok_is_not_done_on_list(self) -> None:
+        self.assertTrue(list_still_running("?"))
+        self.assertTrue(list_still_running("QUE"))
+        self.assertFalse(list_still_running("INI_OK"))
+        self.assertFalse(is_terminal("INI_OK", 100))
+        self.assertFalse(is_terminal("INI_OK", 0))
+        self.assertFalse(is_terminal("WA", 0))
+        self.assertFalse(report_is_complete({"complete": False}))
+        self.assertTrue(report_is_complete({"complete": True, "verdict": "WA"}))
 
     def test_ce_is_terminal(self) -> None:
         self.assertTrue(is_terminal("CE", None))
-        self.assertTrue(is_terminal("WA", 0))
+        self.assertTrue(list_early_fail("INI_ERR"))
+        self.assertFalse(list_early_fail("INI_OK"))
 
 
 class SubmitTests(unittest.TestCase):
@@ -157,6 +162,16 @@ class ListTests(unittest.TestCase):
         item, truncated = _client(urlopen).find_submission("sum", 3)
         self.assertIsNone(item)
         self.assertFalse(truncated)
+
+    def test_submission_report_path_and_body(self) -> None:
+        body = json.dumps({"id": 3, "time_ms": 15, "memory_kb": 4200}).encode()
+        urlopen = MagicMock(return_value=FakeResponse(body))
+        report = _client(urlopen).get_submission_report(3)
+        self.assertEqual(report["time_ms"], 15)
+        self.assertEqual(report["memory_kb"], 4200)
+        request = urlopen.call_args[0][0]
+        self.assertIn("/api/c/demo/submission_report/3/", request.full_url)
+        self.assertEqual(request.get_header("Authorization"), "Token tok")
 
 
 if __name__ == "__main__":

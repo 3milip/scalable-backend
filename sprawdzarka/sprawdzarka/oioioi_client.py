@@ -1,4 +1,4 @@
-"""Klient HTTP do oficjalnego API OIOIOI. Bez RabbitMQ. Worker na razie go nie woła."""
+"""Klient HTTP do API OIOIOI. Lista = poll; karty z submission_report."""
 
 from __future__ import annotations
 
@@ -76,13 +76,24 @@ def parse_submit_id(body: bytes | str) -> int:
     return int(parsed)
 
 
-def is_terminal(status: str | None, score: int | None) -> bool:
-    """INI_OK + score = ocena skończona (ProgrammingContestController). INI_OK bez score = jeszcze przykłady."""
-    if status in STILL_RUNNING:
+def list_still_running(status: str | None) -> bool:
+    return status in STILL_RUNNING
+
+
+def list_early_fail(status: str | None) -> bool:
+    """CE / INI_ERR / SE / ERR — koniec bez czekania na raport NORMAL."""
+    return status in FAILED_STATUS
+
+
+def is_terminal(status: str | None, score: int | None = None) -> bool:
+    """Lista sama nie kończy INI_OK (to przykłady). Koniec z listy tylko przy early fail."""
+    if list_still_running(status):
         return False
-    if status == "INI_OK":
-        return score is not None
-    return True
+    return list_early_fail(status)
+
+
+def report_is_complete(report: dict | None) -> bool:
+    return bool(report) and report.get("complete") is True
 
 
 class OioioiClient:
@@ -153,9 +164,9 @@ class OioioiClient:
                 raise OioioiSubmitUncertain("timeout po POST submit — nie retry") from error
             raise OioioiError(f"submit nie doszedł: {reason}") from error
 
-    def list_submissions(self, short_name: str) -> dict:
+    def _json_get(self, path: str, label: str) -> dict:
         request = urllib.request.Request(
-            f"{self.url}/api/c/{self.contest_id}/problem_submission_list/{short_name}/",
+            f"{self.url}{path}",
             method="GET",
             headers={
                 "Authorization": f"Token {self.token}",
@@ -168,9 +179,21 @@ class OioioiClient:
         except urllib.error.HTTPError as error:
             raise self._http_error(error) from error
         except TimeoutError as error:
-            raise OioioiError("timeout listy zgłoszeń") from error
+            raise OioioiError(f"timeout {label}") from error
         except urllib.error.URLError as error:
-            raise OioioiError(f"lista zgłoszeń: {error.reason}") from error
+            raise OioioiError(f"{label}: {error.reason}") from error
+
+    def list_submissions(self, short_name: str) -> dict:
+        return self._json_get(
+            f"/api/c/{self.contest_id}/problem_submission_list/{short_name}/",
+            "listy zgłoszeń",
+        )
+
+    def get_submission_report(self, oioioi_id: int) -> dict:
+        return self._json_get(
+            f"/api/c/{self.contest_id}/submission_report/{int(oioioi_id)}/",
+            "raportu zgłoszenia",
+        )
 
     def find_submission(self, short_name: str, oioioi_id: int) -> tuple[dict | None, bool]:
         data = self.list_submissions(short_name)

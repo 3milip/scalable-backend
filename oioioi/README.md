@@ -31,6 +31,8 @@ docker compose up
 
 Pierwszy raz ściąga obraz + Postgres + RabbitMQ — to trwa.
 
+Compose montuje `adapter_report/` do obrazu (endpoint `GET /api/c/<contest>/submission_report/<id>/` — max czas i RAM). `web-init.sh` dopina apkę do `settings.py` przy starcie.
+
 Obraz deployment **nie** odpala `migrate` i bez `OIOIOI_SERVER_MODE` nic nie słucha na 8000 (port hosta 8001). Compose w tym repo ustawia `uwsgi-http`. Po pierwszym `up`:
 
 ```powershell
@@ -38,7 +40,7 @@ docker compose exec web ./manage.py migrate
 docker compose restart web
 ```
 
-Smoke C++ (contest `demo`, zadanie `sum`): paczka w `packages/sum/` (zip z katalogami `in/` i `out/` — sam zip z samymi plikami SIO2 odrzuca). Submit API zwraca id; po ocenie status bywa **`INI_OK` z `score: 100`** (to koniec, nie półmetek).
+Smoke C++ (contest `demo`): paczki w `packages/sum/` i `packages/silnia/` (zip z katalogami `in/` i `out/` — sam zip z samymi plikami SIO2 odrzuca). Submit API zwraca id; po ocenie status bywa **`INI_OK` z `score: 100`** (to koniec, nie półmetek). Backend `external_id` = short_name w OIOIOI (`sum`, `silnia`).
 
 UI: http://127.0.0.1:8001/
 

@@ -31,6 +31,7 @@ class FakeClient:
     def __init__(self) -> None:
         self.submits = 0
         self.queue: list[tuple[dict | None, bool]] = []
+        self.reports: list[dict | BaseException] = []
 
     def submit(self, short_name: str, code: str) -> int:
         self.submits += 1
@@ -40,6 +41,14 @@ class FakeClient:
         if not self.queue:
             return None, False
         return self.queue.pop(0)
+
+    def get_submission_report(self, oioioi_id: int) -> dict:
+        if not self.reports:
+            return {"complete": False}
+        item = self.reports.pop(0)
+        if isinstance(item, BaseException):
+            raise item
+        return item
 
 
 class OioioiJobTests(unittest.TestCase):
@@ -66,9 +75,15 @@ class OioioiJobTests(unittest.TestCase):
         client = FakeClient()
         client.queue = [
             ({"id": 7, "status": "INI_OK", "score": None}, False),
+            ({"id": 7, "status": "INI_OK", "score": 0}, False),
             ({"id": 7, "status": "INI_OK", "score": 100}, False),
         ]
-        times = iter([0.0, 0.0, 1.0, 1.0, 2.0])
+        client.reports = [
+            {"complete": False},
+            {"complete": False},
+            {"complete": True, "verdict": "OK", "score": 100, "max_score": 100, "time_ms": 4, "memory_kb": 800},
+        ]
+        times = iter([0.0, 0.0, 1.0, 1.0, 2.0, 2.0, 3.0, 3.0])
         result = run_oioioi_job(
             job,
             client,
@@ -80,6 +95,9 @@ class OioioiJobTests(unittest.TestCase):
         self.assertTrue(result.ok)
         self.assertEqual(result.oioioi_id, 7)
         self.assertEqual(result.score, 100)
+        self.assertEqual(result.status, "OK")
+        self.assertEqual(result.time_ms, 4)
+        self.assertEqual(result.memory_kb, 800)
         self.assertEqual(client.submits, 1)
         self.assertGreaterEqual(len(self.beats), 2)
 
@@ -170,6 +188,97 @@ class OioioiJobTests(unittest.TestCase):
         result = run_oioioi_job(job, FakeClient(), path=self.path)
         self.assertFalse(result.ok)
         self.assertIn("short_name", result.message or "")
+
+    def test_ini_ok_without_final_report_keeps_polling(self) -> None:
+        job = self._job(oioioi_submission_id=7)
+        client = FakeClient()
+        client.queue = [({"id": 7, "status": "INI_OK", "score": 0}, False)] * 5
+        client.reports = [{"complete": False}] * 5
+        ticks = iter([0.0, 0.0, 10.0, 10.0, 700.0])
+        result = run_oioioi_job(
+            job,
+            client,
+            path=self.path,
+            heartbeat_fn=lambda _i: None,
+            sleep_fn=lambda _s: None,
+            monotonic_fn=lambda: next(ticks, 700.0),
+            poll_timeout=5,
+        )
+        self.assertFalse(result.ok)
+        self.assertIn("timeout", result.message or "")
+
+    def test_report_fills_time_memory_and_verdict(self) -> None:
+        job = self._job(oioioi_submission_id=7)
+        client = FakeClient()
+        client.queue = [({"id": 7, "status": "INI_OK", "score": 100}, False)]
+        client.reports = [
+            {
+                "complete": True,
+                "verdict": "OK",
+                "score": 100,
+                "max_score": 100,
+                "time_ms": 15,
+                "memory_kb": 4200,
+            }
+        ]
+        result = run_oioioi_job(
+            job,
+            client,
+            path=self.path,
+            heartbeat_fn=lambda _i: None,
+            sleep_fn=lambda _s: None,
+            monotonic_fn=lambda: 0.0,
+        )
+        self.assertTrue(result.ok)
+        self.assertEqual(result.time_ms, 15)
+        self.assertEqual(result.memory_kb, 4200)
+        self.assertEqual(result.status, "OK")
+        self.assertEqual(result.score, 100)
+        self.assertEqual(result.max_score, 100)
+
+    def test_report_verdict_overrides_ini_ok(self) -> None:
+        job = self._job(oioioi_submission_id=7)
+        client = FakeClient()
+        client.queue = [({"id": 7, "status": "INI_OK", "score": 0}, False)]
+        client.reports = [
+            {"complete": True, "verdict": "WA", "score": 0, "max_score": 100, "time_ms": 18, "memory_kb": None}
+        ]
+        result = run_oioioi_job(
+            job,
+            client,
+            path=self.path,
+            heartbeat_fn=lambda _i: None,
+            sleep_fn=lambda _s: None,
+            monotonic_fn=lambda: 0.0,
+        )
+        self.assertTrue(result.ok)
+        self.assertEqual(result.status, "WA")
+        self.assertEqual(result.score, 0)
+        self.assertEqual(result.time_ms, 18)
+        self.assertIsNone(result.memory_kb)
+
+    def test_report_error_retries_then_completes(self) -> None:
+        job = self._job(oioioi_submission_id=7)
+        client = FakeClient()
+        client.queue = [
+            ({"id": 7, "status": "INI_OK", "score": 0}, False),
+            ({"id": 7, "status": "INI_OK", "score": 100}, False),
+        ]
+        client.reports = [
+            OioioiHttpError(500, "x"),
+            {"complete": True, "verdict": "OK", "score": 100, "time_ms": 1},
+        ]
+        result = run_oioioi_job(
+            job,
+            client,
+            path=self.path,
+            heartbeat_fn=lambda _i: None,
+            sleep_fn=lambda _s: None,
+            monotonic_fn=lambda: 0.0,
+        )
+        self.assertTrue(result.ok)
+        self.assertEqual(result.score, 100)
+        self.assertEqual(result.status, "OK")
 
     def test_poll_timeout(self) -> None:
         job = self._job(oioioi_submission_id=3)

@@ -1,4 +1,4 @@
-"""Submit-once + poll w tym samym lease. Worker woła to zamiast isolate."""
+"""Submit-once + poll. Lista tylko do kolejki; karty z submission_report."""
 
 from __future__ import annotations
 
@@ -12,8 +12,10 @@ from sprawdzarka.oioioi_client import (
     OioioiError,
     OioioiHttpError,
     OioioiSubmitUncertain,
-    is_terminal,
+    list_early_fail,
+    list_still_running,
     parse_score,
+    report_is_complete,
 )
 from sprawdzarka.queue import Job, heartbeat, merge_payload, oioioi_id_from_payload
 
@@ -29,6 +31,9 @@ class OioioiJobResult:
     score: int | None
     message: str | None
     item: dict | None = None
+    time_ms: int | None = None
+    memory_kb: int | None = None
+    max_score: int | None = None
 
 
 def short_name_from_payload(payload: dict) -> str | None:
@@ -37,6 +42,43 @@ def short_name_from_payload(payload: dict) -> str | None:
         if value:
             return str(value)
     return None
+
+
+def _str_or_none(value: object) -> str | None:
+    if value is None or value == "":
+        return None
+    return str(value)
+
+
+def _result_from_report(
+    oioioi_id: int,
+    item: dict | None,
+    report: dict,
+    fallback_status: str | None,
+) -> OioioiJobResult:
+    verdict = _str_or_none(report.get("verdict")) or fallback_status
+    score = parse_score(report.get("score"))
+    if score is None:
+        score = parse_score((item or {}).get("score"))
+    return OioioiJobResult(
+        True,
+        oioioi_id,
+        verdict,
+        score,
+        None,
+        item,
+        time_ms=parse_score(report.get("time_ms")),
+        memory_kb=parse_score(report.get("memory_kb")),
+        max_score=parse_score(report.get("max_score")),
+    )
+
+
+def _fetch_report(client: OioioiClient, oioioi_id: int) -> dict | None:
+    try:
+        report = client.get_submission_report(oioioi_id)
+    except OioioiError:
+        return None
+    return report if isinstance(report, dict) else None
 
 
 def run_oioioi_job(
@@ -93,10 +135,28 @@ def run_oioioi_job(
                 )
             sleep_fn(poll_interval)
             continue
-        status = item.get("status")
-        status_text = None if status is None else str(status)
-        score = parse_score(item.get("score"))
-        if is_terminal(status_text, score):
-            return OioioiJobResult(True, oioioi_id, status_text, score, None, item)
-        sleep_fn(poll_interval)
+        status_text = _str_or_none(item.get("status"))
+        if list_still_running(status_text):
+            sleep_fn(poll_interval)
+            continue
+        if list_early_fail(status_text):
+            report = _fetch_report(client, oioioi_id)
+            if report:
+                return _result_from_report(oioioi_id, item, report, status_text)
+            return OioioiJobResult(True, oioioi_id, status_text, parse_score(item.get("score")), None, item)
+        try:
+            report = client.get_submission_report(oioioi_id)
+        except OioioiHttpError as error:
+            if error.status == 429:
+                sleep_fn(poll_interval * 2)
+                continue
+            sleep_fn(poll_interval)
+            continue
+        except OioioiError:
+            sleep_fn(poll_interval)
+            continue
+        if not isinstance(report, dict) or not report_is_complete(report):
+            sleep_fn(poll_interval)
+            continue
+        return _result_from_report(oioioi_id, item, report, status_text)
     return OioioiJobResult(False, oioioi_id, None, None, "timeout polla OIOIOI")

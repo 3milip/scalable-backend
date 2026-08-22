@@ -238,7 +238,7 @@
     "solution": "#include <iostream>\nint main() {\n    long long n;\n    std::cin >> n;\n    std::cout << n * (n + 1) / 2 << \"\\n\";\n}"
   },
   {
-    "external_id": "local-08",
+    "external_id": "silnia",
     "title": "Silnia",
     "statement": "Wczytaj liczbę całkowitą n (0 ≤ n ≤ 10).\nWypisz n! (silnię).\nPrzypomnienie: 0! = 1.\n\nPrzykład:\nWejście:\n5\nWyjście:\n120",
     "difficulty": 900,

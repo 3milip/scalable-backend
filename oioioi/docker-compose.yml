@@ -5,6 +5,7 @@
 # Lokalne zmiany względem pliku z repo SIO2:
 # - obraz z GHCR (compose SIO2 ma sio2project/oioioi:$OIOIOI_VERSION)
 # - web na hoście :8001, żeby nie zderzyć się z backendem na :8000
+# - apka adapter_report (GET /api/c/<contest>/submission_report/<id>/)
 
 x-common-envs: &common-envs
   FILETRACKER_URL: "http://web:9999"
@@ -25,7 +26,7 @@ services:
 
   web:
     image: ghcr.io/sio2project/oioioi:${OIOIOI_VERSION:-master}
-    command: ["/sio2/oioioi/oioioi_init.sh"]
+    command: ["bash", "/sio2/oioioi/web-init.sh"]
     environment:
       OIOIOI_DB_ENGINE: "django.db.backends.postgresql"
       OIOIOI_SERVER_MODE: "uwsgi-http"
@@ -44,6 +45,9 @@ services:
       - broker
     volumes:
       - filetracker-data:/sio2/deployment/media
+      - ./adapter_report:/sio2/oioioi/oioioi/adapter_report:ro
+      - ./extra_settings.py:/sio2/deployment/extra_settings.py:ro
+      - ./web-init.sh:/sio2/oioioi/web-init.sh:ro
 
   worker:
     image: ghcr.io/sio2project/oioioi:${OIOIOI_VERSION:-master}

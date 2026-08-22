@@ -53,6 +53,8 @@ Wejście:
 
 `short_name` = id zadania w contestcie OIOIOI (u nas `Problem.external_id`). Worker ignoruje `tests` — ocenia paczka SIO2. Callback v1: `tests: []`.
 
+Lista API (`problem_submission_list`) służy tylko do polla (`QUE` / `?` / CE). Karty biorą `GET /api/c/{contest}/submission_report/{id}/` gdy `complete: true` (raport NORMAL albo early fail). `INI_OK` na liście = przykłady, nie koniec. Werdykt/score/czas/RAM z testów punktowanych (RAM 0 pomijane).
+
 `id` w teście to `test.id` z backendu — wraca jako `test_id` w callbacku, gdy sędzia lokalny kiedyś zwracał wiersze. Pola `hidden` nie ma.
 
 Odpowiedź `201`:

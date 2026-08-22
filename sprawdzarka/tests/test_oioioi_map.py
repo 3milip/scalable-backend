@@ -18,6 +18,34 @@ class MapTests(unittest.TestCase):
         self.assertEqual(body["score"], 100)
         self.assertEqual(body["max_score"], 100)
         self.assertEqual(body["tests"], [])
+        self.assertIsNone(body["time_ms"])
+        self.assertIsNone(body["memory_kb"])
+
+    def test_copies_time_and_memory(self) -> None:
+        result = OioioiJobResult(
+            True, 3, "INI_OK", 100, None, {"id": 3}, time_ms=15, memory_kb=4200
+        )
+        body = to_callback(42, result)
+        self.assertEqual(body["time_ms"], 15)
+        self.assertEqual(body["memory_kb"], 4200)
+        self.assertEqual(body["tests"], [])
+
+    def test_ini_ok_with_zero_from_list_stays_ok_without_report(self) -> None:
+        result = OioioiJobResult(True, 3, "INI_OK", 0, None, {"id": 3})
+        body = to_callback(42, result)
+        self.assertEqual(body["verdict"], "OK")
+        self.assertEqual(body["score"], 0)
+
+    def test_wa_from_final_report(self) -> None:
+        result = OioioiJobResult(
+            True, 3, "WA", 0, None, {"id": 3}, time_ms=18, memory_kb=None, max_score=100
+        )
+        body = to_callback(42, result)
+        self.assertEqual(body["verdict"], "WA")
+        self.assertEqual(body["score"], 0)
+        self.assertEqual(body["max_score"], 100)
+        self.assertEqual(body["time_ms"], 18)
+        self.assertIsNone(body["memory_kb"])
 
     def test_rte_se_ce(self) -> None:
         self.assertEqual(map_verdict("RTE"), "RE")
