@@ -79,6 +79,10 @@ class SubmitTests(unittest.TestCase):
         job = mocked.call_args[0][0]
         self.assertEqual(job["short_name"], "s1")
         self.assertEqual(job["language"], "cpp")
+        self.assertEqual(
+            set(job),
+            {"submission_id", "language", "code", "short_name"},
+        )
 
     def test_rejects_non_cpp_language(self) -> None:
         with self.assertRaises(ValidationError):

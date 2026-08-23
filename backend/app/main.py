@@ -143,22 +143,7 @@ def create_submission(payload: SubmissionIn, db: Session = Depends(get_db)):
             "submission_id": submission.id,
             "language": submission.language,
             "code": submission.code,
-            "time_limit_ms": problem.time_limit_ms,
-            "memory_limit_mb": problem.memory_limit_mb,
-            "checker": problem.checker or "exact",
-            "checker_code": problem.checker_code or "",
             "short_name": problem.external_id,
-            "tests": [
-                {
-                    "id": test.id,
-                    "input": test.input_text,
-                    "output": test.output_text,
-                    "position": test.position,
-                    "group": test.group,
-                    "max_score": test.max_score,
-                }
-                for test in tests
-            ],
         }
     )
     if job is None:

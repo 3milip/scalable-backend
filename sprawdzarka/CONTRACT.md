@@ -33,25 +33,11 @@ Wejście:
   "submission_id": 42,
   "language": "cpp",
   "code": "#include <iostream>\nint main() { int a, b; std::cin >> a >> b; std::cout << a + b << \"\\n\"; }\n",
-  "time_limit_ms": 1000,
-  "memory_limit_mb": 256,
-  "checker": "exact",
-  "checker_code": "",
-  "short_name": "sum",
-  "tests": [
-    {
-      "id": 1,
-      "input": "1 2\n",
-      "output": "3\n",
-      "position": 0,
-      "group": "0",
-      "max_score": 0
-    }
-  ]
+  "short_name": "sum"
 }
 ```
 
-`short_name` = id zadania w contestcie OIOIOI (u nas `Problem.external_id`). Worker ignoruje `tests` — ocenia paczka SIO2. Callback v1: `tests: []`.
+`short_name` = id zadania w contestcie OIOIOI (`Problem.external_id`). Live **nie** wysyła `tests` / `checker` / limitów z JSON-a — ocenia paczka SIO2. Stare pola API jeszcze przyjmuje (isolate w testach). Callback v1: `tests: []`.
 
 Lista API (`problem_submission_list`) służy tylko do polla (`QUE` / `?` / CE). Karty biorą `GET /api/c/{contest}/submission_report/{id}/` gdy `complete: true` (raport NORMAL albo early fail). `INI_OK` na liście = przykłady, nie koniec. Werdykt/score/czas/RAM z testów punktowanych (RAM 0 pomijane).
 

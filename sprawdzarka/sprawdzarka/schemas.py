@@ -22,11 +22,12 @@ class JobIn(BaseModel):
     submission_id: int
     language: str
     code: str = Field(min_length=1)
-    time_limit_ms: int
-    memory_limit_mb: int
+    short_name: str = ""
+    # Zostają pod isolate w testach; live (OIOIOI) ich nie wysyła i nie czyta.
+    time_limit_ms: int = 0
+    memory_limit_mb: int = 0
     checker: str = "exact"
     checker_code: str = ""
-    short_name: str = ""
     tests: list[JobTestIn] = []
 
 
