@@ -6,6 +6,7 @@
 # - obraz z GHCR (compose SIO2 ma sio2project/oioioi:$OIOIOI_VERSION)
 # - web na hoście :8001, żeby nie zderzyć się z backendem na :8000
 # - apka adapter_report (GET /api/c/<contest>/submission_report/<id>/)
+# - worker privileged: sio2jail (seccomp/namespace) na Docker Desktop / WSL
 
 x-common-envs: &common-envs
   FILETRACKER_URL: "http://web:9999"
@@ -56,8 +57,11 @@ services:
       WEB_URL: "web:8000"
       <<: *common-envs
     stop_grace_period: 1m
+    privileged: true
     cap_add:
       - ALL
+    security_opt:
+      - seccomp:unconfined
     depends_on:
       - db
       - broker
