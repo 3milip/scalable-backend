@@ -13,6 +13,22 @@ Przeglądarka → frontend → backend → sprawdzarka (adapter OIOIOI). Wynik w
 
 Kontrakty: [backend/CONTRACT.md](backend/CONTRACT.md), [sprawdzarka/CONTRACT.md](sprawdzarka/CONTRACT.md).
 
+## Werdykty (na karcie zgłoszenia)
+
+Tylko gdy status jest `done`. `failed` to nie werdykt — ocena w ogóle nie doszła (np. brak zadania w OIOIOI).
+
+| kod | znaczenie |
+|---|---|
+| **OK** | program dał poprawny wynik |
+| **WA** | zły wynik (Wrong Answer) |
+| **TLE** | za długo (Time Limit Exceeded) |
+| **MLE** | za dużo RAM (Memory Limit Exceeded) |
+| **RE** | wywalił się w trakcie (Runtime Error) |
+| **CE** | nie skompilował się (Compilation Error) |
+| **SI** | błąd sędziego / nieznany status z OIOIOI |
+
+RAM i czas na karcie to pomiar z OIOIOI (szczyt z testów), nie limit zadania.
+
 ## Setup (raz)
 
 Wymagane: Python 3.12+, Docker Desktop (WSL 2) dla stacku OIOIOI (`oioioi/`). Worker sprawdzarki nie woła już lokalnego `g++`.
