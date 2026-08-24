@@ -13,7 +13,6 @@ from sprawdzarka.oioioi_client import (
     OioioiHttpError,
     OioioiSubmitUncertain,
     list_early_fail,
-    list_still_running,
     parse_score,
     report_is_complete,
 )
@@ -73,14 +72,6 @@ def _result_from_report(
     )
 
 
-def _fetch_report(client: OioioiClient, oioioi_id: int) -> dict | None:
-    try:
-        report = client.get_submission_report(oioioi_id)
-    except OioioiError:
-        return None
-    return report if isinstance(report, dict) else None
-
-
 def run_oioioi_job(
     job: Job,
     client: OioioiClient,
@@ -116,35 +107,6 @@ def run_oioioi_job(
     while monotonic_fn() < deadline:
         beat(job.id)
         try:
-            item, truncated = client.find_submission(short_name, oioioi_id)
-        except OioioiHttpError as error:
-            if error.status == 429:
-                sleep_fn(poll_interval * 2)
-                continue
-            return OioioiJobResult(False, oioioi_id, None, None, f"OIOIOI HTTP {error.status}: {error.message}")
-        except OioioiError as error:
-            return OioioiJobResult(False, oioioi_id, None, None, str(error))
-        if item is None:
-            if truncated:
-                return OioioiJobResult(
-                    False,
-                    oioioi_id,
-                    None,
-                    None,
-                    "oioioi_submission_id wypadł z okna ostatnich 20",
-                )
-            sleep_fn(poll_interval)
-            continue
-        status_text = _str_or_none(item.get("status"))
-        if list_still_running(status_text):
-            sleep_fn(poll_interval)
-            continue
-        if list_early_fail(status_text):
-            report = _fetch_report(client, oioioi_id)
-            if report:
-                return _result_from_report(oioioi_id, item, report, status_text)
-            return OioioiJobResult(True, oioioi_id, status_text, parse_score(item.get("score")), None, item)
-        try:
             report = client.get_submission_report(oioioi_id)
         except OioioiHttpError as error:
             if error.status == 429:
@@ -155,8 +117,11 @@ def run_oioioi_job(
         except OioioiError:
             sleep_fn(poll_interval)
             continue
-        if not isinstance(report, dict) or not report_is_complete(report):
+        if not isinstance(report, dict):
             sleep_fn(poll_interval)
             continue
-        return _result_from_report(oioioi_id, item, report, status_text)
+        status_text = _str_or_none(report.get("verdict") or report.get("status"))
+        if report_is_complete(report) or list_early_fail(status_text):
+            return _result_from_report(oioioi_id, None, report, status_text)
+        sleep_fn(poll_interval)
     return OioioiJobResult(False, oioioi_id, None, None, "timeout polla OIOIOI")

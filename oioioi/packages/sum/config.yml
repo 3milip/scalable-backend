@@ -1,6 +1,6 @@
 title: Suma dwóch liczb
 sinol_task_id: sum
-memory_limit: 65536
+memory_limit: 262144
 time_limit: 1000
 no_outgen: true
 scores:

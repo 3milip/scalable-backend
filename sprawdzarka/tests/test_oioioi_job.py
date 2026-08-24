@@ -73,11 +73,6 @@ class OioioiJobTests(unittest.TestCase):
     def test_saves_id_immediately_and_does_not_resubmit(self) -> None:
         job = self._job()
         client = FakeClient()
-        client.queue = [
-            ({"id": 7, "status": "INI_OK", "score": None}, False),
-            ({"id": 7, "status": "INI_OK", "score": 0}, False),
-            ({"id": 7, "status": "INI_OK", "score": 100}, False),
-        ]
         client.reports = [
             {"complete": False},
             {"complete": False},
@@ -116,7 +111,7 @@ class OioioiJobTests(unittest.TestCase):
         assert job2 is not None
         self.assertEqual(job2.id, job2_id)
         client.submits = 0
-        client.queue = [({"id": 7, "status": "CE", "score": None}, False)]
+        client.reports = [{"complete": True, "verdict": "CE"}]
         again = run_oioioi_job(
             job2,
             client,
@@ -158,10 +153,13 @@ class OioioiJobTests(unittest.TestCase):
         self.assertIsNone(result.oioioi_id)
         self.assertEqual(client.submits, 1)
 
-    def test_truncated_window_fails(self) -> None:
-        job = self._job(oioioi_submission_id=3)
+    def test_report_404_retries_then_completes(self) -> None:
+        job = self._job(oioioi_submission_id=74)
         client = FakeClient()
-        client.queue = [(None, True)]
+        client.reports = [
+            OioioiHttpError(404, '{"detail": "Not found."}'),
+            {"complete": True, "verdict": "OK", "score": 100, "time_ms": 1},
+        ]
         result = run_oioioi_job(
             job,
             client,
@@ -170,8 +168,9 @@ class OioioiJobTests(unittest.TestCase):
             sleep_fn=lambda _s: None,
             monotonic_fn=lambda: 0.0,
         )
-        self.assertFalse(result.ok)
-        self.assertIn("20", result.message or "")
+        self.assertTrue(result.ok)
+        self.assertEqual(result.score, 100)
+        self.assertEqual(result.status, "OK")
         self.assertEqual(client.submits, 0)
 
     def test_missing_short_name(self) -> None:
@@ -192,7 +191,6 @@ class OioioiJobTests(unittest.TestCase):
     def test_ini_ok_without_final_report_keeps_polling(self) -> None:
         job = self._job(oioioi_submission_id=7)
         client = FakeClient()
-        client.queue = [({"id": 7, "status": "INI_OK", "score": 0}, False)] * 5
         client.reports = [{"complete": False}] * 5
         ticks = iter([0.0, 0.0, 10.0, 10.0, 700.0])
         result = run_oioioi_job(
@@ -210,7 +208,6 @@ class OioioiJobTests(unittest.TestCase):
     def test_report_fills_time_memory_and_verdict(self) -> None:
         job = self._job(oioioi_submission_id=7)
         client = FakeClient()
-        client.queue = [({"id": 7, "status": "INI_OK", "score": 100}, False)]
         client.reports = [
             {
                 "complete": True,
@@ -239,7 +236,6 @@ class OioioiJobTests(unittest.TestCase):
     def test_report_verdict_overrides_ini_ok(self) -> None:
         job = self._job(oioioi_submission_id=7)
         client = FakeClient()
-        client.queue = [({"id": 7, "status": "INI_OK", "score": 0}, False)]
         client.reports = [
             {"complete": True, "verdict": "WA", "score": 0, "max_score": 100, "time_ms": 18, "memory_kb": None}
         ]
@@ -260,10 +256,6 @@ class OioioiJobTests(unittest.TestCase):
     def test_report_error_retries_then_completes(self) -> None:
         job = self._job(oioioi_submission_id=7)
         client = FakeClient()
-        client.queue = [
-            ({"id": 7, "status": "INI_OK", "score": 0}, False),
-            ({"id": 7, "status": "INI_OK", "score": 100}, False),
-        ]
         client.reports = [
             OioioiHttpError(500, "x"),
             {"complete": True, "verdict": "OK", "score": 100, "time_ms": 1},
@@ -283,7 +275,7 @@ class OioioiJobTests(unittest.TestCase):
     def test_poll_timeout(self) -> None:
         job = self._job(oioioi_submission_id=3)
         client = FakeClient()
-        client.queue = [(None, False)] * 5
+        client.reports = [{"complete": False}] * 5
         ticks = iter([0.0, 0.0, 10.0, 10.0, 700.0])
         result = run_oioioi_job(
             job,

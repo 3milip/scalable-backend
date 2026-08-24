@@ -39,7 +39,7 @@ Wejście:
 
 `short_name` = id zadania w contestcie OIOIOI (`Problem.external_id`). Live **nie** wysyła `tests` / `checker` / limitów z JSON-a — ocenia paczka SIO2. Stare pola API jeszcze przyjmuje (isolate w testach). Callback v1: `tests: []`.
 
-Lista API (`problem_submission_list`) służy tylko do polla (`QUE` / `?` / CE). Karty biorą `GET /api/c/{contest}/submission_report/{id}/` gdy `complete: true` (raport NORMAL albo early fail). `INI_OK` na liście = przykłady, nie koniec. Werdykt/score/czas/RAM z testów punktowanych (RAM 0 pomijane).
+Po udanym submitcie worker pollowa tylko `GET /api/c/{contest}/submission_report/{id}/` (404/5xx → retry, nie `failed`). Karty gdy `complete: true` (raport NORMAL albo CE). `INI_OK` = przykłady, nie koniec. Werdykt/score/czas/RAM z testów punktowanych (RAM 0 pomijane). Submit 404 (nie ma zadania) nadal kończy joba jako `failed`.
 
 `id` w teście to `test.id` z backendu — wraca jako `test_id` w callbacku, gdy sędzia lokalny kiedyś zwracał wiersze. Pola `hidden` nie ma.
 
